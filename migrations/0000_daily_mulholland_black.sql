@@ -1,3 +1,5 @@
+CREATE TYPE "public"."priority" AS ENUM('low', 'medium', 'high');--> statement-breakpoint
+CREATE TYPE "public"."status" AS ENUM('open', 'closed', 'inprogress');--> statement-breakpoint
 CREATE TABLE "attachments" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"file_path" varchar NOT NULL,
@@ -27,6 +29,10 @@ CREATE TABLE "projects" (
 	"created_by" integer
 );
 --> statement-breakpoint
+
+--> statement-breakpoint
+
+--> statement-breakpoint
 CREATE TABLE "ticket_assignes" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"ticket_id" integer NOT NULL,
@@ -50,27 +56,17 @@ CREATE TABLE "tickets" (
 	"updated_at" timestamp
 );
 --> statement-breakpoint
-CREATE TABLE "users" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"first_name" varchar NOT NULL,
-	"last_name" varchar,
-	"email" varchar NOT NULL,
-	"password" varchar NOT NULL,
-	"phone_number" varchar,
-	"user_type" text DEFAULT 'user',
-	"is_active" text DEFAULT 'true',
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now()
-);
+
 --> statement-breakpoint
 ALTER TABLE "attachments" ADD CONSTRAINT "attachments_ticket_id_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "public"."tickets"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "comments" ADD CONSTRAINT "comments_ticket_id_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "public"."tickets"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "comments" ADD CONSTRAINT "comments_reply_to_comments_id_fk" FOREIGN KEY ("reply_to") REFERENCES "public"."comments"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "comments" ADD CONSTRAINT "comments_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "projects" ADD CONSTRAINT "projects_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+
+
 ALTER TABLE "ticket_assignes" ADD CONSTRAINT "ticket_assignes_ticket_id_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "public"."tickets"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ticket_assignes" ADD CONSTRAINT "ticket_assignes_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tickets" ADD CONSTRAINT "tickets_requested_by_users_id_fk" FOREIGN KEY ("requested_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tickets" ADD CONSTRAINT "tickets_assigned_to_users_id_fk" FOREIGN KEY ("assigned_to") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "projects_name_idx" ON "projects" USING btree ("name");--> statement-breakpoint
-CREATE INDEX "users_email_idx" ON "users" USING btree ("email");

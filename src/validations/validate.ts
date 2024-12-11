@@ -3,6 +3,8 @@ import UnProcessableEntityException from "../exceptions/unProcessableEntityExcep
 import { AppActivity, ValidateReq } from "../types/appType";
 import { VForgotSchema, VResetSchema, VUserSchema } from "./schema/vUserSchema";
 import { VLoginSchema } from "./schema/vLoginSchema";
+import { VUpdateTicketSchema } from "./schema/vUpdateTicket";
+import { VTicketSchema } from "./schema/vTicketSchema";
 
 
 export const validate = async<R extends ValidateReq>(actionType: AppActivity, reqData: any, errMsg: string) => {
@@ -19,6 +21,14 @@ export const validate = async<R extends ValidateReq>(actionType: AppActivity, re
             break;
         case 'password: reset':
             schema = VResetSchema;
+            break;
+        case 'ticket: create-ticket':
+            schema = VTicketSchema;
+            break;
+        case 'ticket: update':
+            schema = VUpdateTicketSchema;
+            break;
+        default:
             break;
     }
 

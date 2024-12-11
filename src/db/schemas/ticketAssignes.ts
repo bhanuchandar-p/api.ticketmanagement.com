@@ -8,3 +8,7 @@ export const ticketAssignes = pgTable('ticket_assignes', {
     assigned_at: timestamp().defaultNow(),
     updated_at: timestamp()
 })
+
+export type TicketAssignes = typeof ticketAssignes.$inferSelect
+export type NewTicketAssignes = typeof ticketAssignes.$inferInsert
+export type TicketAssignesTable = typeof ticketAssignes

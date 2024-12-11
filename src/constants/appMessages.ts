@@ -58,3 +58,31 @@ export const TOKEN_N_FOND = 'Token not found';
 export const FORGOT_EMAIL_SENT = 'Forgot password email link has been sent successfully';
 export const LOGIN_SUCCESS = 'User login successful';
 export const SIGNUP_SUCCESS = 'User created successfully';
+
+
+export const TICKET_NOT_FOUND = "Ticket not found";
+export const TICKET_CREATED_SUCCESS = "Ticket created successfully";
+export const TICKET_UPDATED_SUCCESS = "Ticket updated successfully";
+export const TICKET_DELETED_SUCCESS = "Ticket deleted successfully";
+export const TICKETS_FETCHED_SUCCESS = "Tickets fetched successfully";
+export const TICKET_FETCHED_SUCCESS = "Ticket fetched successfully";
+export const TICKET_ASSIGNED_SUCCESS = "Ticket assigned successfully";
+
+export const TICKET_TITLE_REQUIRED = "Ticket title is required";
+export const TICKET_TITLE_STRING = "Ticket title must be a string";
+export const TICKET_TITLE_MIN_LENGTH = "Ticket title must be at least 5 characters long";
+export const TICKET_TITLE_MAX_LENGTH = "Ticket title must be at most 50 characters long";
+
+
+export const TICKET_DESCRIPTION_STRING = "Ticket description must be a string";
+export const TICKET_DESCRIPTION_MIN_LENGTH = "Ticket description must be at least 20 characters long";
+export const TICKET_DESCRIPTION_MAX_LENGTH = "Ticket description must be at most 400 characters long";
+
+export const TICKET_PRIORITY_REQUIRED = "Ticket priority is required";
+export const TICKET_STATUS_REQUIRED = "Ticket status is required";
+export const TICKET_PRIORITY = ['low', 'medium', 'high'] as const;
+export const TICKET_STATUS = ['open', 'closed', 'inprogress'] as const;
+export const TICKET_PRIORITY_VALIDATION = "Ticket priority must be low, medium or high";
+export const TICKET_STATUS_VALIDATION = "Ticket status must be open, closed or inprogress";
+export const PAGE_NOT_EXIST = 'The Requested page is doesnot exist';
+

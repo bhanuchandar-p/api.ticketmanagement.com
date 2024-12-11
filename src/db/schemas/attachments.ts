@@ -16,5 +16,6 @@ export const attachments = pgTable('attachments', {
     updated_at: timestamp()
 })
 
-export type SelectAttachment = typeof attachments.$inferSelect;
-export type InsertAttachment = typeof attachments.$inferInsert;
+export type Attachment = typeof attachments.$inferSelect;
+export type NewAttachment = typeof attachments.$inferInsert;
+export type AttachmentsTable = typeof attachments

@@ -2,11 +2,11 @@ import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
 import { db } from '../../db/dbConnection';  
 import { DBNewRecord, DBNewRecords, DBTable, DBTableRow, InQueryData, OrderByQueryData,  UpdateRecordData, WhereQueryData } from "../../types/dbtypes";
 import { executeQuery, prepareInQueryCondition, prepareOrderByQueryConditions, prepareSelectColumnsForQuery, prepareWhereQueryConditions } from "../../utils/dbUtils";
+import {tickets} from "../../db/schemas/tickets";
 
-
-// type SelectedKeys<T, K extends keyof T> = {
-//   [P in K]: T[P];
-// };
+type SelectedKeys<T, K extends keyof T> = {
+  [P in K]: T[P];
+};
 
 const getRecordById = async<R extends DBTableRow, C extends keyof R = keyof R>(
   table: DBTable,
@@ -16,8 +16,8 @@ const getRecordById = async<R extends DBTableRow, C extends keyof R = keyof R>(
   const columnsRequired = prepareSelectColumnsForQuery(table, columnsToSelect);
 
   const result = columnsRequired ?
-    await db.select(columnsRequired).from(table).where(eq(table.id, id)) :
-    await db.select().from(table).where(eq(table.id, id));
+    await db.select(columnsRequired).from(tickets).where(eq(tickets.id, id)) :
+    await db.select().from(tickets).where(eq(tickets.id, id));
 
   if (result.length === 0) {
     return null;
@@ -350,7 +350,7 @@ const getSingleRecordById = async<R extends DBTableRow>(tableName: DBTable, id: 
 
 export {
   deleteRecordByCondition, deleteRecordById, exportData, getMultipleRecordsByAColumnValue,
-  getMultipleRecordsByMultipleColumnValues, getPaginatedRecords, getPaginatedRecordsConditionally, getRecordById,
+  getMultipleRecordsByMultipleColumnValues, getPaginatedRecords, getRecordById,
   getRecordsConditionally,
   getRecordsCount, getRecordsCountByCondition, getSingleRecordByAColumnValue,
   getSingleRecordByMultipleColumnValues, saveRecords, saveSingleRecord, softDeleteRecordById,

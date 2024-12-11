@@ -15,4 +15,5 @@ export const projects = pgTable('projects', {
 ]
 )
 export type project = typeof projects.$inferSelect
-export type projectInsert = typeof projects.$inferInsert
+export type NewInsert = typeof projects.$inferInsert
+export type ProjectTable = typeof projects

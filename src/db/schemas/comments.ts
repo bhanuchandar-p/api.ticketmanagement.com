@@ -12,5 +12,6 @@ export const comments = pgTable('comments', {
     updated_at: timestamp()
 })
 
-export type SelectComment = typeof comments.$inferSelect
-export type InsertComment = typeof comments.$inferInsert
+export type Comment = typeof comments.$inferSelect
+export type NewComment = typeof comments.$inferInsert
+export type CommentsTable = typeof comments

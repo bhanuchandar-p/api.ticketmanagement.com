@@ -3,8 +3,8 @@ import { users } from "./users"
 import { SQL, sql } from "drizzle-orm";
 
 
-const Priorities = pgEnum('priority', ['low', 'medium', 'high'])
-const TicketStatus = pgEnum('status', ['open', 'closed', 'inprogress'])
+export const Priorities = pgEnum('priority', ['low', 'medium', 'high'])
+export const TicketStatus = pgEnum('status', ['open', 'closed', 'inprogress'])
 export const tickets = pgTable('tickets', {
     id: serial().primaryKey(),
     title: varchar().notNull(),
@@ -20,6 +20,6 @@ export const tickets = pgTable('tickets', {
     updated_at: timestamp(),
 })
 
-export type SelectTicket = typeof tickets.$inferSelect
-export type InsertTicket = typeof tickets.$inferInsert                    
-export type SelectModel = typeof tickets
+export type Ticket = typeof tickets.$inferSelect
+export type NewTicket = typeof tickets.$inferInsert                    
+export type TicketsTables = typeof tickets
