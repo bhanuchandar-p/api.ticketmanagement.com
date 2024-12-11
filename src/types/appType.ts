@@ -8,6 +8,10 @@ export type UserActivity = 'user: signup' | 'user: login'
 
 export type PasswordActivity = 'password: forgot' | 'password: reset'
 
+export type TicketPriority = 'low:low' | 'medium:medium' | 'high:high'
+
+export type TicketStatus  = 'open:open' | 'closed:closed' | 'inprogress:inprogress'
+
 export type AppActivity = UserActivity | PasswordActivity
 
 export type ValidateReq = ValidateLoginSchema | ValidateUserSchema | ValidateForgotSchema | ValidateResetSchema
