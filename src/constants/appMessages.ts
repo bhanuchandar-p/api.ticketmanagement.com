@@ -23,9 +23,14 @@ export const F_NAME_REQ = 'First name is required';
 export const F_NAME_MAX_LENGTH = 'First name must be less than 40 characters';
 export const F_NAME_MIN_LENGTH = 'First name must be at least 3 characters';
 
+export const L_NAME_REQ = 'Last name is required';
+export const L_NAME_MAX_LENGTH = 'Last name must be less than 40 characters';
+
+
 export const EMAIL_REQ = 'Email is required';
 export const EMAIL_INVALID = 'Email is invalid';
 export const EMAIL_MAX_LENGTH = 'Email must be less than 30 characters';
+export const EMAIL_EXISTS = 'Email already exists';
 
 export const PASSWORD_REQ = 'Password is required';
 export const PASSWORD_INVALID = 'Password is invalid';
@@ -48,7 +53,8 @@ export const FORGOT_VALID_ERROR = 'Forgot password details are invalid';
 export const RESET_VALID_ERROR = 'Reset password details are invalid';
 
 export const USER_NOT_FOUND = 'User not found';
-export const USER_ALREADY_EXISTS = 'User already exists';
+export const USER_EXISTS = 'User already exists';
+export const USER_TYPE_INVALID = 'User type is invalid';
 
 export const INVALID_TOKEN = 'Invalid token';
 export const INVALID_REFRESH_TOKEN = 'Invalid refresh token';

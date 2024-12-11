@@ -1,12 +1,13 @@
 import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
 import { db } from '../../db/dbConnection';  
-import { DBNewRecord, DBNewRecords, DBTable, DBTableRow, InQueryData, OrderByQueryData,  UpdateRecordData, WhereQueryData } from "../../types/dbtypes";
+import { DBNewRecord, DBNewRecords, DBTable, DBTableRow, InQueryData, OrderByQueryData,  PaginationInfo,  UpdateRecordData, WhereQueryData } from "../../types/dbtypes";
 import { executeQuery, prepareInQueryCondition, prepareOrderByQueryConditions, prepareSelectColumnsForQuery, prepareWhereQueryConditions } from "../../utils/dbUtils";
+import { UserTable } from "../../db/schemas/users";
 
 
-// type SelectedKeys<T, K extends keyof T> = {
-//   [P in K]: T[P];
-// };
+type SelectedKeys<T, K extends keyof T> = {
+  [P in K]: T[P]
+};
 
 const getRecordById = async<R extends DBTableRow, C extends keyof R = keyof R>(
   table: DBTable,
@@ -284,6 +285,64 @@ const getPaginatedRecords = async (table: DBTable, skip: number, limit: number, 
   return result;
 };
 
+const getPaginatedRecordsConditionally = async<R extends DBTableRow, C extends keyof R = keyof R>(
+  table: DBTable,
+  page: number,
+  pageSize: number,
+  orderByQueryData?: OrderByQueryData<R>,
+  whereQueryData?: WhereQueryData<R>,
+  columnsToSelect?: any,
+  inQueryData?: InQueryData<R>
+) => {
+  let countQuery = db.select({ total: count(table.id) }).from(table).$dynamic();
+  if (whereQueryData) {
+    const whereConditions = prepareWhereQueryConditions(table, whereQueryData);
+    if (whereConditions) {
+      countQuery = countQuery.where(and(...whereConditions));
+    }
+  }
+
+
+  const recordsCount = await countQuery;
+  const total_records = recordsCount[0]?.total || 0;
+  const total_pages = Math.ceil(total_records / pageSize) || 1;
+
+  const pagination_info: PaginationInfo = {
+    total_records,
+    total_pages,
+    page_size: pageSize,
+    current_page: page > total_pages ? total_pages : page,
+    next_page: page >= total_pages ? null : page + 1,
+    prev_page: page <= 1 ? null : page - 1
+  };
+
+  if (total_records === 0) {
+    return {
+      pagination_info,
+      records: []
+    };
+  }
+
+  const columnsRequired = prepareSelectColumnsForQuery(table, columnsToSelect);
+  const whereConditions = prepareWhereQueryConditions(table, whereQueryData);
+  const orderByConditions = prepareOrderByQueryConditions(table, orderByQueryData);
+  const inQueryCondition = prepareInQueryCondition(table, inQueryData);
+
+  let whereQuery = whereConditions ? and(...whereConditions) : null;
+
+  const paginationData = { page, pageSize };
+  const results = await executeQuery<R, C>(table, whereQuery, columnsRequired, orderByConditions, inQueryCondition, paginationData);
+
+  if (!results || results.length === 0) {
+    return null;
+  }
+
+  return {
+    pagination_info,
+    records: results
+  };
+};
+
 
 const getRecordsCount = async (table: DBTable, filters?: any) => {
   let intialQuery = db.select({ total: count() }).from(table);
@@ -345,16 +404,21 @@ const getSingleRecordById = async<R extends DBTableRow>(tableName: DBTable, id: 
     return res[0] as R;
 }
 
+const getSingleRecordByEmail = async<R extends DBTableRow>(tableName: UserTable, email: string) => {
+    const res = await db.select().from(tableName).where(eq(tableName.email, email)).limit(1);
+    return res[0] as R;
+}
 
 
 
 export {
   deleteRecordByCondition, deleteRecordById, exportData, getMultipleRecordsByAColumnValue,
-  getMultipleRecordsByMultipleColumnValues, getPaginatedRecords, getPaginatedRecordsConditionally, getRecordById,
+  getMultipleRecordsByMultipleColumnValues, getPaginatedRecords, getRecordById,
   getRecordsConditionally,
   getRecordsCount, getRecordsCountByCondition, getSingleRecordByAColumnValue,
   getSingleRecordByMultipleColumnValues, saveRecords, saveSingleRecord, softDeleteRecordById,
-  updateMultipleRecords, updateRecordById
+  updateMultipleRecords, updateRecordById, getSingleRecordByEmail, getSingleRecordById,
+  getPaginatedRecordsConditionally
 };
 
 

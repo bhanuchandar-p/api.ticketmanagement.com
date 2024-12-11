@@ -32,6 +32,20 @@ export type InQueryData<T extends DBTableRow> = {
   values: any[];
 };
 
+export type PaginationInfo = {
+  total_records: number,
+  total_pages: number,
+  page_size: number,
+  current_page: number,
+  next_page: number | null,
+  prev_page: number | null;
+};
+
+export type PaginatedRecords<T extends DBTableRow> = {
+  pagination_info: PaginationInfo,
+  records: T[];
+};
+
 
 
 

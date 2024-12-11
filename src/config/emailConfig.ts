@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 export const emailConfig = {
     API_KEY: process.env.BREVO_API_KEY,
     FROM_EMAIL: process.env.FROM_EMAIL,

@@ -2,6 +2,9 @@ import { sign, verify } from "hono/jwt";
 import UnauthorizedException from "../exceptions/unAuthorizedException";
 import { JWTPayload, JwtTokenExpired, JwtTokenInvalid, JwtTokenSignatureMismatched } from "hono/utils/jwt/types";
 import { jwtConfig, jwtRefreshConfig } from "../config/jwtConfig";
+import { Context } from "hono";
+import { getRecordById } from "../services/db/baseDbService";
+import { User, users } from "../db/schemas/users";
 
 
 export const generateResetToken = async(payload: any) =>{
@@ -48,4 +51,32 @@ export const verifyJWT = async(token: string) =>{
         }   
     }  
 }
+
+export const getUserDetailsFromToken = async (c: Context) => {
+    try {
+      const authHeader = c.req.header('Authorization');
+      const token = authHeader?.substring(7, authHeader.length);
+  
+      if (!token) {
+        throw new UnauthorizedException('No token provided');
+      }
+  
+      const decodedPayload = await verifyJWT(token);
+  
+  
+      // Check if the user is existing in the system - in case the user is removed from the system the jwt token can still be valid
+      const user = await getRecordById<User>(users, decodedPayload.sub as number);
+  
+      if (!user?.is_active || !user) {
+        throw new UnauthorizedException("USER_INACTIVE");
+      }
+  
+      const { password, created_at, updated_at, ...userDetails } = user;
+  
+      return userDetails;
+  
+    } catch (error) {
+      throw error;
+    }
+  };
 

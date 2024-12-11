@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 export const jwtConfig = {
     secret: process.env.JWT_SECRET as string,
     exp_in: 60*60*24*7
