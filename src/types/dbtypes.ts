@@ -2,7 +2,7 @@ import { Attachment, AttachmentsTable, NewAttachment } from "../db/schemas/attac
 import { CommentsTable, NewComment } from "../db/schemas/comments";
 import { project, ProjectTable } from "../db/schemas/projects";
 import { NewRefreshToken, RefreshToken, RefreshTokenTable } from "../db/schemas/refreshTokens";
-import { NewResetPasswordToken, ResetPasswordToken } from "../db/schemas/resetPasswordTokens";
+import { NewResetPasswordToken, ResetPasswordToken, ResetToken } from "../db/schemas/resetPasswordTokens";
 import { NewTicketAssignes, TicketAssignes, TicketAssignesTable } from "../db/schemas/ticketAssignes";
 import { NewTicket, Ticket, TicketsTables } from "../db/schemas/tickets";
 import { NewUser, User, UserTable } from "../db/schemas/users";
@@ -16,6 +16,8 @@ export type DBTable =
                | AttachmentsTable
                | ProjectTable
                | CommentsTable
+               | ResetToken
+              
 
 export type DBTableRow = 
               | User 

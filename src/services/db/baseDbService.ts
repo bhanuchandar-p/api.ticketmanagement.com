@@ -58,69 +58,69 @@ const getRecordsConditionally = async<R extends DBTableRow, C extends keyof R = 
 };
 
 
-// const getPaginatedRecordsConditionally = async<R extends DBTableRow, C extends keyof R = keyof R>(
-//   table: DBTable,
-//   page: number,
-//   pageSize: number,
-//   orderByQueryData?: OrderByQueryData<R>,
-//   whereQueryData?: WhereQueryData<R>,
-//   columnsToSelect?: any,
-//   inQueryData?: InQueryData<R>
-// ) => {
-//   let countQuery = db.select({ total: count(table.id) }).from(table).$dynamic();
-//   if (whereQueryData) {
-//     const whereConditions = prepareWhereQueryConditions(table, whereQueryData);
-//     if (whereConditions) {
-//       countQuery = countQuery.where(and(...whereConditions));
-//     }
-//   }
+const getPaginatedRecordsConditionally = async<R extends DBTableRow, C extends keyof R = keyof R>(
+  table: DBTable,
+  page: number,
+  pageSize: number,
+  orderByQueryData?: OrderByQueryData<R>,
+  whereQueryData?: WhereQueryData<R>,
+  columnsToSelect?: any,
+  inQueryData?: InQueryData<R>
+) => {
+  let countQuery = db.select({ total: count(table.id) }).from(table).$dynamic();
+  if (whereQueryData) {
+    const whereConditions = prepareWhereQueryConditions(table, whereQueryData);
+    if (whereConditions) {
+      countQuery = countQuery.where(and(...whereConditions));
+    }
+  }
   
-//   if (inQueryData && inQueryData.values.length > 0) {
-//     const inQueryCondition = prepareInQueryCondition(table, inQueryData);
-//     if (inQueryCondition) {
-//       countQuery = countQuery.where(inQueryCondition);
-//     }
-//   }
+  if (inQueryData && inQueryData.values.length > 0) {
+    const inQueryCondition = prepareInQueryCondition(table, inQueryData);
+    if (inQueryCondition) {
+      countQuery = countQuery.where(inQueryCondition);
+    }
+  }
   
-//   const recordsCount = await countQuery;
-//   const total_records = recordsCount[0]?.total || 0;
-//   const total_pages = Math.ceil(total_records / pageSize) || 1;
+  const recordsCount = await countQuery;
+  const total_records = recordsCount[0]?.total || 0;
+  const total_pages = Math.ceil(total_records / pageSize) || 1;
 
-//   const pagination_info: PaginationInfo = {
-//     total_records,
-//     total_pages,
-//     page_size: pageSize,
-//     current_page: page > total_pages ? total_pages : page,
-//     next_page: page >= total_pages ? null : page + 1,
-//     prev_page: page <= 1 ? null : page - 1
-//   };
+  const pagination_info: PaginationInfo = {
+    total_records,
+    total_pages,
+    page_size: pageSize,
+    current_page: page > total_pages ? total_pages : page,
+    next_page: page >= total_pages ? null : page + 1,
+    prev_page: page <= 1 ? null : page - 1
+  };
 
-//   if (total_records === 0) {
-//     return {
-//       pagination_info,
-//       records: []
-//     };
-//   }
+  if (total_records === 0) {
+    return {
+      pagination_info,
+      records: []
+    };
+  }
 
-//   const columnsRequired = prepareSelectColumnsForQuery(table, columnsToSelect);
-//   const whereConditions = prepareWhereQueryConditions(table, whereQueryData);
-//   const orderByConditions = prepareOrderByQueryConditions(table, orderByQueryData);
-//   const inQueryCondition = prepareInQueryCondition(table, inQueryData);
+  const columnsRequired = prepareSelectColumnsForQuery(table, columnsToSelect);
+  const whereConditions = prepareWhereQueryConditions(table, whereQueryData);
+  const orderByConditions = prepareOrderByQueryConditions(table, orderByQueryData);
+  const inQueryCondition = prepareInQueryCondition(table, inQueryData);
 
-//   let whereQuery = whereConditions ? and(...whereConditions) : null;
+  let whereQuery = whereConditions ? and(...whereConditions) : null;
 
-//   const paginationData = { page, pageSize };
-//   const results = await executeQuery<R, C>(table, whereQuery, columnsRequired, orderByConditions, inQueryCondition, paginationData);
+  const paginationData = { page, pageSize };
+  const results = await executeQuery<R, C>(table, whereQuery, columnsRequired, orderByConditions, inQueryCondition, paginationData);
 
-//   if (!results || results.length === 0) {
-//     return null;
-//   }
+  if (!results || results.length === 0) {
+    return null;
+  }
 
-//   return {
-//     pagination_info,
-//     records: results
-//   };
-// };
+  return {
+    pagination_info,
+    records: results
+  };
+};
 
 const getMultipleRecordsByAColumnValue = async<R extends DBTableRow, C extends keyof R = keyof R>(
   table: DBTable,
