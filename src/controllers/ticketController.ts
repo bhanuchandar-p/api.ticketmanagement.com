@@ -42,30 +42,6 @@ class TicketController {
       throw err;
     }
   }
-
-    // Get all tickets with filters and pagination
-  //   filterAllTickets= async (c:Context) => {
-  //     try {
-  //         const page = +(c.req.query('page')||1);
-  //         const limit = +(c.req.query('limit')||10);
-  //         const offset = (page - 1) * limit; //it tells about the starting point of the data 
-          
-  //         const query = c.req.query() as unknown as TicketQuery; 
-  //         const filterQuery = await filtersToApply(query);
-
-  //         const userType = c.get('user').user_type;
-  //         const userId =c.get('user').id
-
-  //         const filteredData = await filterBasedOnUserType(userId,userType,offset,limit,filterQuery);
-  //         const metadata = await metaData(tickets,page,limit)
-  //         if (!filteredData || filteredData.length==0) {
-  //           throw new NotfoundException(PAGE_NOT_EXIST);
-  //         }
-  //         return SendSuccessMsg(c, TICKETS_FETCHED_SUCCESS, 200, filteredData,metadata);
-  //     } catch (error) {
-  //         throw error
-  //     }
-  // };
   
 
   // Get a ticket by its ID
@@ -157,6 +133,8 @@ class TicketController {
     }
   }
 
+
+//assign ticket
 assignTicket = async (c:Context) => {
   try {
       const ticketId = +c.req.param('id');
@@ -181,13 +159,12 @@ assignTicket = async (c:Context) => {
 
 }
 
-
+//add comment
 addComment = async(c: Context) => {
   try {
     const comment = await c.req.json();
     const ticket_id = +c.req.param("id");
 
-  //   const user_id = c.get('user').id;
   const validData = await validate<ValidateCommentsSchema>( 'comment: create-comment', comment, "Comment validation failed");
     const {...commentData }= { comment:validData.comment,ticket_id:ticket_id ,user_id:1}; 
     const newComment = await saveSingleRecord<Comment>(comments,commentData);
@@ -199,7 +176,7 @@ addComment = async(c: Context) => {
   }
 }
 
-
+//get comments
 getComments = async(c: Context) => {
   try {
     const id = +c.req.param("id");
@@ -215,6 +192,7 @@ getComments = async(c: Context) => {
   }
 }
 
+//delete comment
 deleteComment = async (c:Context) =>{
   try{
     const commentId= +c.req.param('commentId');
@@ -231,6 +209,8 @@ deleteComment = async (c:Context) =>{
     throw error
   }
 }
+
+//upload attachment url
 getUploadURL = async (c: Context) => {
 
   try {
@@ -238,19 +218,9 @@ getUploadURL = async (c: Context) => {
 
     let responseData;
 
-    // const isPublic = Boolean(c.req.query('is_public') || null);
-
     const validatedReq = await validate<ValidateUploadFile>('file: upload', reqData, FILE_VALIDATION_ERROR);
 
     let fileKey = fileNameHelper(validatedReq.file_name);
-
-  //   if (isPublic) {
-  //     responseData = await publicS3FileService.generateUploadPresignedUrl(fileKey, validatedReq.file_type);
-  //   }
-  //   else {
-  //     responseData = await s3FileService.generateUploadPresignedUrl(fileKey, validatedReq.file_type);
-
-  //   }
 
     responseData = await s3FileService.generateUploadPresignedUrl(fileKey, validatedReq.file_type);
 
@@ -261,6 +231,8 @@ getUploadURL = async (c: Context) => {
   }
 };
 
+
+//download attachment url
 getDownloadURL = async (c: Context) => {
   try {
     const reqData = await c.req.json();
