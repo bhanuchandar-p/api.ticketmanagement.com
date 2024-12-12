@@ -4,9 +4,11 @@ import dotenv from 'dotenv';
 import authRouter from './routers/authRouter';
 import userRouter from './routers/userRouter';
 import onboardRouter from './routers/onboardRouter';
+import projectRouter from './routers/projectRouter';
+import seeder from './seeders/seederRoutes';
 dotenv.config();
 
-const app = new Hono().basePath(`/api/v${process.env.API_VERSION}`);
+const app = new Hono({ strict: false }).basePath(`/api/v${process.env.API_VERSION}`);
 
 app.get('/', (c) => {
   return c.text('Hello Hono!')
@@ -15,7 +17,8 @@ app.get('/', (c) => {
 app.route('/auth',authRouter);
 app.route('/users',userRouter);
 app.route('/onboard',onboardRouter);
-
+app.route('/projects',projectRouter);
+app.route('/seed',seeder);
 
 app.onError((err: any, c: Context) => {
   c.status(err.status || 500);

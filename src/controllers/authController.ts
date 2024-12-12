@@ -1,6 +1,6 @@
 import { Context } from "hono";
 import { validate } from "../validations/validate";
-import { FORGOT_EMAIL_SENT, FORGOT_VALID_ERROR, LOGIN_SUCCESS, LOGIN_VALID_ERROR, PASSWORD_MISMATCH, RESET_VALID_ERROR, SIGNUP_SUCCESS, SIGNUP_VALID_ERROR, TOKEN_N_FOND, USER_EXISTS, USER_NOT_FOUND } from "../constants/appMessages";
+import { EMAIL_NOT_EXISTS, FORGOT_EMAIL_SENT, FORGOT_VALID_ERROR, INV_CREDS, INVALID_TOKEN, LOGIN_SUCCESS, LOGIN_VALID_ERROR, PASSWORD_MISMATCH, PASSWORD_RESET_SUCCESS, RESET_VALID_ERROR, SIGNUP_SUCCESS, SIGNUP_VALID_ERROR, TKN_GEN, TKN_USED, TKN_VERIFIED, TOKEN_N_FOND, USER_EXISTS, USER_NOT_FOUND } from "../constants/appMessages";
 import bcrypt from 'bcrypt';
 import { ValidateForgotSchema, ValidateResetSchema, ValidateUserSchema } from "../validations/schema/vUserSchema";
 import { getSingleRecordByAColumnValue, getRecordById, getSingleRecordByMultipleColumnValues, saveSingleRecord, updateRecordById, getSingleRecordByEmail } from "../services/db/baseDbService";
@@ -50,12 +50,12 @@ class AuthController {
 
             const res = await getSingleRecordByAColumnValue<User>(users, 'email', validData.email);
             if (!res){
-                throw new NotFoundException('User does not exist');
+                throw new NotFoundException(USER_NOT_FOUND);
             }
 
             const isPasswordMatch = await bcrypt.compare(validData.password, res.password);
             if (!isPasswordMatch){
-                throw new BadRequestException('Invalid credentials');
+                throw new BadRequestException(INV_CREDS);
             }
             const { password, ...UserDetails } = res;
 
@@ -78,7 +78,7 @@ class AuthController {
 
             const userData = await getSingleRecordByAColumnValue<User>(users, 'email', validData.email);
             if (!userData){
-                throw new NotFoundException(USER_NOT_FOUND);
+                throw new NotFoundException(EMAIL_NOT_EXISTS);
             }
 
             const payload = { userId: userData.id, exp: Math.floor(Date.now() / 1000) + jwtConfig.exp_in };
@@ -86,7 +86,7 @@ class AuthController {
             const token = await generateResetToken(payload);
             await saveSingleRecord<ResetPasswordToken>(resetPasswordTokens, {token, user_id: userData.id});
 
-            const link = emailConfig.BASE_URL+`/reset-password/token?=${token}`;
+            const link = emailConfig.BASE_URL+`/reset-password?token=${token}`;
             await sendEmailtoResetPassword(validData.email, link);
 
             return SendSuccessMsg(c, 200, FORGOT_EMAIL_SENT);
@@ -99,20 +99,18 @@ class AuthController {
     resetPassword = async(c:Context) => {
         try {
             const reqBody = await c.req.json();
-            const token = c.req.param('token');
 
             const validData = await validate<ValidateResetSchema>('password:reset',reqBody, RESET_VALID_ERROR);
-
             if(validData.new_password !== validData.confirm_password){
                 throw new BadRequestException(PASSWORD_MISMATCH);
             }
-
-            const resetTokenRecord = await getSingleRecordByAColumnValue<ResetPasswordToken>(resetPasswordTokens, 'token', token);
-            if (!resetTokenRecord){
-                throw new NotFoundException(TOKEN_N_FOND);
+            
+            const userId = await this._resetTokenVerify(c);
+            if (!userId){
+                throw new BadRequestException(INVALID_TOKEN);
             }
 
-            const userData = await getRecordById<User>(users, resetTokenRecord.user_id);
+            const userData = await getRecordById<User>(users, userId);
             if (!userData){
                 throw new NotFoundException(USER_NOT_FOUND);
             }
@@ -121,35 +119,33 @@ class AuthController {
             userData.password = hashedPassword;
             
             await updateRecordById<User>(users, userData.id, {password: hashedPassword});
-            await updateRecordById<ResetPasswordToken>(resetPasswordTokens, resetTokenRecord.id, {is_verified: true});
+            await updateRecordById<ResetPasswordToken>(resetPasswordTokens, userId, {is_verified: true});
 
-            return SendSuccessMsg(c, 200, 'Password reset successful');
+            return SendSuccessMsg(c, 200, PASSWORD_RESET_SUCCESS);
         } catch(error){
             throw error;
 
         }
     }
 
-    resetTokenVerify = async(c:Context) => {
+    _resetTokenVerify = async(c:Context) => {
         try {
-            const token = c.req.param('token');
+            const token = c.req.query('token');
 
             const columnsToSelect = ['user_id', 'token', 'is_verified'] as const;
 
             const tokenData = await getSingleRecordByAColumnValue<ResetPasswordToken>(resetPasswordTokens, 'token', token, columnsToSelect);
 
             if (!tokenData){
-                throw new NotFoundException('Token does not exist');
+                throw new NotFoundException(TOKEN_N_FOND);
             }
 
             await verifyJWT(tokenData.token);
 
             if (tokenData.is_verified === true){
-                throw new BadRequestException('Token already used');
+                throw new BadRequestException(TKN_USED);
             }
-
-            return SendSuccessMsg(c, 200, 'Token verified successfully');
-
+            return tokenData.user_id;
         } catch (error){
             throw error;
         }
@@ -162,13 +158,13 @@ class AuthController {
             const tokenData = await getSingleRecordByAColumnValue<RefreshToken>(refreshTokens, 'token', reqBody.refreshToken);
 
             if (!tokenData){
-                throw new NotFoundException('Token does not exist');
+                throw new NotFoundException(TOKEN_N_FOND);
             }
 
             await verifyJWT(tokenData.token);
 
             const token = await genToken(tokenData.user_id);    
-            return SendSuccessMsg(c, 200, 'Token generated successfully', {access_token:token.access_token});
+            return SendSuccessMsg(c, 200,TKN_GEN , {access_token:token.access_token});
 
         } catch (error){
             throw error;

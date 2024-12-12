@@ -60,7 +60,7 @@ const prepareWhereQueryConditions = <R extends DBTableRow>(table: DBTable, where
   return null;
 };
 
-const prepareWhereQueryConditionsForTasks = <R extends DBTableRow>(table: DBTable, whereQueryData?: WhereQueryData<R>) => {
+const prepareWhereQueryConditionsForTickets = <R extends DBTableRow>(table: DBTable, whereQueryData?: WhereQueryData<R>) => {
   if (whereQueryData && Object.keys(whereQueryData).length > 0 && whereQueryData.columns.length > 0) {
     const { columns, values } = whereQueryData;
     let whereQueries: SQL[] = [];
@@ -94,45 +94,7 @@ const prepareWhereQueryConditionsForTasks = <R extends DBTableRow>(table: DBTabl
   return null;
 };
 
-const prepareWhereQueryConditionsForArchiveTasks = <R extends DBTableRow>(table: DBTable, whereQueryData?: WhereQueryData<R>) => {
-
-  if (whereQueryData && Object.keys(whereQueryData).length > 0 && whereQueryData.columns.length > 0) {
-    const { columns, values } = whereQueryData;
-    let whereQueries: SQL[] = [];
-    for (let i = 0; i < columns.length; i++) {
-      const columnInfo = sql.raw(`${getTableName(table)}.${columns[i] as string}`);
-      if (typeof values[i] === 'string' && values[i].includes('%')) {
-        whereQueries.push(sql`${columnInfo} ILIKE ${values[i]}`);
-      }
-
-      else if (columns[i] === 'deleted_at') {
-
-        whereQueries.push(not(isNull(columnInfo)));
-      }
-
-      else if (typeof values[i] === 'object' && values[i] !== null) {
-        const value = values[i] as { gte?: Date | string; lte?: Date | string; };
-
-        if (value.gte && value.lte) {
-          whereQueries.push(sql`${columnInfo} BETWEEN ${value.gte} AND ${value.lte}`);
-        } else if (value.gte) {
-          whereQueries.push(sql`${columnInfo} >= ${value.gte}`);
-        } else if (value.lte) {
-          whereQueries.push(sql`${columnInfo} <= ${value.lte}`);
-        }
-
-      }
-      else {
-        whereQueries.push(eq(columnInfo, values[i]));
-      }
-
-    }
-    return whereQueries;
-  }
-  return null;
-};
-
-const prepareWhereQueryConditionsForProjects = <R extends DBTableRow>(table: DBTable, whereQueryData?: WhereQueryData<R>) => {
+const prepareWhereQueryConditionsForProjects = <R extends DBTableRow>(table: DBTable, whereQueryData: WhereQueryData<R>) => {
   if (whereQueryData && Object.keys(whereQueryData).length > 0 && whereQueryData.columns.length > 0) {
     const { columns, values } = whereQueryData;
     let whereQueries: SQL[] = [];
@@ -164,10 +126,8 @@ const prepareWhereQueryConditionsForProjects = <R extends DBTableRow>(table: DBT
         whereQueries.push(sql`${columnInfo} = ${values[i]}`);
       }
     }
-
     return whereQueries;
   }
-
   return null;
 };
 
@@ -259,6 +219,5 @@ export {
   prepareInQueryCondition,
   executeQuery,
   prepareWhereQueryConditionsForProjects,
-  prepareWhereQueryConditionsForTasks,
-  prepareWhereQueryConditionsForArchiveTasks
+  prepareWhereQueryConditionsForTickets
 };

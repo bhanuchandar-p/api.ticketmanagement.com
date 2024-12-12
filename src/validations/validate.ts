@@ -3,6 +3,7 @@ import UnProcessableEntityException from "../exceptions/unProcessableEntityExcep
 import { AppActivity, ValidateReq } from "../types/appType";
 import { VAdminUserSchema, VDeveloperUserSchema, VForgotSchema, VRegularUserSchema, VResetSchema, VUpdateUserSchema, VUserSchema } from "./schema/vUserSchema";
 import { VLoginSchema } from "./schema/vLoginSchema";
+import { VProjectSchema } from "./schema/vProjectSchema";
 
 
 export const validate = async<R extends ValidateReq>(actionType: AppActivity, reqData: any, errMsg: string) => {
@@ -29,13 +30,19 @@ export const validate = async<R extends ValidateReq>(actionType: AppActivity, re
         case 'user:update-password':
             schema = VUpdateUserSchema;
             break;
-        case 'user:create-developer-user':
+        case 'user:create-developer':
             schema = VDeveloperUserSchema;
             break;
         case 'user:create-user':
             schema = VRegularUserSchema;
             break;
+        case 'add:project':
+            schema = VProjectSchema;
+            break;
+        case 'update:project':
+
     }
+
 
     const res = await safeParseAsync(schema!, reqData, { abortEarly: true});
     if (!res.success){

@@ -1,14 +1,17 @@
+import { NewProject, project, ProjectTable } from "../db/schemas/projects";
+import { NewProjectuser, ProjectUser, ProjectUserTable } from "../db/schemas/projectUsers";
 import { NewRefreshToken, RefreshToken, RefreshTokenTable } from "../db/schemas/refreshTokens";
 import { NewResetPasswordToken, ResetPasswordToken, ResetToken } from "../db/schemas/resetPasswordTokens";
+import { NewTicket, Ticket, TicketsTables } from "../db/schemas/tickets";
 import { NewUser, User, UserTable } from "../db/schemas/users";
 
-export type DBTable = UserTable | ResetToken | RefreshTokenTable
+export type DBTable = UserTable | ResetToken | RefreshTokenTable | ProjectTable | ProjectUserTable | TicketsTables
 
-export type DBTableRow = User | ResetPasswordToken | RefreshToken
+export type DBTableRow = User | ResetPasswordToken | RefreshToken | project | ProjectUser | Ticket
 
-export type DBNewRecord = NewUser | NewResetPasswordToken | NewRefreshToken
+export type DBNewRecord = NewUser | NewResetPasswordToken | NewRefreshToken | NewProject | NewProjectuser | NewTicket 
 
-export type DBNewRecords = NewUser[] | NewResetPasswordToken[] | NewRefreshToken[]
+export type DBNewRecords = NewUser[] | NewResetPasswordToken[] | NewRefreshToken[] | NewProjectuser[]
 
 
 export type UpdateRecordData<R extends DBTableRow> = Partial<Omit<R, "id" | "created_at" | "updated_at">>;

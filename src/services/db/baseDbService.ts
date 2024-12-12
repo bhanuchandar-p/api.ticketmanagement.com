@@ -26,8 +26,6 @@ const getRecordById = async<R extends DBTableRow, C extends keyof R = keyof R>(
 
   if (columnsRequired) {    
     return result[0] as Pick<R, C>;
-    // return result[0] as SelectedKeys<R, C>
-    // return result[0] as Record<C, any>
   }
   return result[0] as R;
 };

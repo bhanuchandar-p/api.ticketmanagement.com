@@ -61,7 +61,7 @@ class UserController {
     createDeveloperUser = async(c:Context) => {
         try {
             const req = await c.req.json();
-            const validData = await validate<ValidateDeveloperUserSchema>('user:create-developer-user', req, "Developer User creation Validation Error");
+            const validData = await validate<ValidateDeveloperUserSchema>('user:create-developer', req, "Developer User creation Validation Error");
 
             const existingUser = await getSingleRecordByAColumnValue<User>(users, 'email', validData.email);
             if (existingUser){
