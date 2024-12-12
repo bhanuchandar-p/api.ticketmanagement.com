@@ -1,0 +1,287 @@
+import { Context } from 'hono';
+import BadRequestException from '../exceptions/badReqException';
+import NotfoundException from '../exceptions/notFoundException';
+import { SendSuccessMsg } from '../helpers/sendSuccessMsg';
+import { validate } from '../validations/validate';
+import { tickets, Ticket, NewTicket } from "../db/schemas/tickets";
+import { COMMENT_ADDED_SUCCESS, COMMENT_DELETED_SUCCESS, COMMENT_FETCHED_SUCCESS, COMMENT_NOT_FOUND, DEF_MSG_401, FILE_VALIDATION_ERROR, TICKET_ASSIGNED_SUCCESS, TICKET_CREATED_SUCCESS, TICKET_DELETED_SUCCESS, TICKET_FETCHED_SUCCESS, TICKET_NOT_FOUND, TICKET_UPDATED_SUCCESS, TICKETS_FETCHED_SUCCESS } from './../constants/appMessages';
+import { ValidateTicketSchema } from '../validations/schema/vTicketSchema';
+import { deleteRecordById, getMultipleRecordsByAColumnValue, getRecordById, getSingleRecordByAColumnValue, saveSingleRecord, updateRecordById } from '../services/db/baseDbService';
+import { ValidateUpdateTicket } from '../validations/schema/vUpdateTicket';
+import UnauthorizedException from '../exceptions/unAuthorizedException';
+import { ticketAssignes, TicketAssignes } from '../db/schemas/ticketAssignes';
+import { ValidateCommentsSchema } from '../validations/schema/vCommentsSchema';
+import { Comment, comments, NewComment } from '../db/schemas/comments';
+import notFoundException from '../exceptions/notFoundException';
+import NotFoundException from '../exceptions/notFoundException';
+import { getAllRecords } from '../services/db/ticketService';
+import { ValidateDownloadFile, ValidateUploadFile } from '../validations/schema/vFileSchema';
+import { fileNameHelper } from '../utils/appUtils';
+import S3FileService from '../services/s3/s3DataServiceProvider';
+
+const s3FileService = new S3FileService();
+class TicketController {
+    uploadAttachment(arg0: string, uploadAttachment: any) {
+        throw new Error("Method not implemented.");
+    }
+    
+
+  // Add a new ticket
+  addTicket = async (c:Context) => {
+    try {
+      const requested_body = await c.req.json();
+
+      const requested_by = 1;
+      const validData = await validate<ValidateTicketSchema>('ticket: create-ticket', requested_body, "Ticket validation failed");
+
+      const dbData = { ...validData, requested_by } as NewTicket;
+      const resTicket = await saveSingleRecord<Ticket>(tickets,dbData);//single row
+
+      return SendSuccessMsg(c,201,TICKET_CREATED_SUCCESS, resTicket);
+    } catch (err) {
+      throw err;
+    }
+  }
+
+    // Get all tickets with filters and pagination
+  //   filterAllTickets= async (c:Context) => {
+  //     try {
+  //         const page = +(c.req.query('page')||1);
+  //         const limit = +(c.req.query('limit')||10);
+  //         const offset = (page - 1) * limit; //it tells about the starting point of the data 
+          
+  //         const query = c.req.query() as unknown as TicketQuery; 
+  //         const filterQuery = await filtersToApply(query);
+
+  //         const userType = c.get('user').user_type;
+  //         const userId =c.get('user').id
+
+  //         const filteredData = await filterBasedOnUserType(userId,userType,offset,limit,filterQuery);
+  //         const metadata = await metaData(tickets,page,limit)
+  //         if (!filteredData || filteredData.length==0) {
+  //           throw new NotfoundException(PAGE_NOT_EXIST);
+  //         }
+  //         return SendSuccessMsg(c, TICKETS_FETCHED_SUCCESS, 200, filteredData,metadata);
+  //     } catch (error) {
+  //         throw error
+  //     }
+  // };
+  
+
+  // Get a ticket by its ID
+  getTicketById = async(c:Context) => {
+    try {
+      const ticketId = +c.req.param('id');
+      if (!(ticketId)) {
+        throw new BadRequestException("You entered an invalid id")
+      }
+      const ticket = await getRecordById<Ticket>(tickets, ticketId);
+       if (!ticket) {
+        throw new NotfoundException(TICKET_NOT_FOUND);
+      }
+      return SendSuccessMsg(c,  200, TICKET_FETCHED_SUCCESS, ticket);
+    } catch (error) {
+      throw error
+    }
+  }
+
+  //get all tickets
+  getAllTickets = async (c:Context) => {
+    try {
+      const ticketsData = await getAllRecords(tickets);
+      if (!ticketsData || ticketsData.length==0) {  
+        throw new NotfoundException(TICKET_NOT_FOUND);
+      }
+      return SendSuccessMsg(c,  200, TICKET_FETCHED_SUCCESS, ticketsData);
+    } catch (error) {
+      throw error
+    }
+  }
+
+  //get tickets for the particular projects
+  getTicketsByProjectId = async (c:Context) => {
+    try {
+      const projectId = +c.req.param('id');
+      if (!(projectId)) {
+        throw new BadRequestException("You entered an invalid id")
+      }
+      const ticketsData = await getMultipleRecordsByAColumnValue<Ticket>(tickets, 'project_id', projectId);
+      if (!ticketsData || ticketsData.length==0) {  
+        throw new NotfoundException(TICKET_NOT_FOUND);
+      }
+      return SendSuccessMsg(c,  200, TICKET_FETCHED_SUCCESS, ticketsData);
+    } catch (error) {
+      throw error
+    }
+  }
+
+
+   // Update the ticket
+   updateTicket = async (c:Context) => {
+    try {
+      const ticketId = +c.req.param('id'); 
+      if (!(ticketId)) {
+        throw new BadRequestException("You entered an invalid id")
+      }
+      const data= await getRecordById<Ticket>(tickets, ticketId);
+      if (!data) {
+        throw new NotfoundException(TICKET_NOT_FOUND);
+      }
+      const ticketData = await c.req.json(); 
+      const validData = await validate<ValidateUpdateTicket>('ticket: update', ticketData, "Ticket update failed");
+      const updatedTicket = await updateRecordById<Ticket>(tickets,ticketId, validData);
+      if (updatedTicket === null) {
+        throw new NotfoundException(TICKET_NOT_FOUND);
+      }
+      return SendSuccessMsg(c, 200,  TICKET_UPDATED_SUCCESS, updatedTicket);
+    } catch (error) {
+       throw error
+    }
+  }
+
+  // Delete the ticket
+  deleteTicket = async (c:Context) =>{
+    try{
+      const ticketId= +c.req.param('id');
+      if (!ticketId) {
+        throw new BadRequestException("You entered an invalid id")
+      }
+      const ticket = await getRecordById<Ticket>(tickets, ticketId);
+      if (!ticket) {
+        throw new NotfoundException(TICKET_NOT_FOUND);
+      }
+      await deleteRecordById<Ticket>(tickets,ticketId)
+      return SendSuccessMsg(c,  200, TICKET_DELETED_SUCCESS, null);
+    }catch (error) {
+      throw error
+    }
+  }
+
+assignTicket = async (c:Context) => {
+  try {
+      const ticketId = +c.req.param('id');
+      const {agent_id} = await c.req.json();
+
+      if (!ticketId || !agent_id) {
+          throw new BadRequestException("You entered an invalid id")
+      }
+      const data= await getRecordById<Ticket>(tickets, ticketId);
+      if (!data) {
+          throw new NotfoundException(TICKET_NOT_FOUND);
+      }
+      const assignedTicket = await saveSingleRecord<TicketAssignes>(ticketAssignes,{ticket_id:ticketId,user_id:agent_id});
+      if (assignedTicket === null) {  
+          throw new NotfoundException(TICKET_NOT_FOUND);
+      }
+      return SendSuccessMsg(c,  200, TICKET_ASSIGNED_SUCCESS,assignedTicket);
+
+  } catch(err){
+      throw err
+  }
+
+}
+
+
+addComment = async(c: Context) => {
+  try {
+    const comment = await c.req.json();
+    const ticket_id = +c.req.param("id");
+
+  //   const user_id = c.get('user').id;
+  const validData = await validate<ValidateCommentsSchema>( 'comment: create-comment', comment, "Comment validation failed");
+    const {...commentData }= { comment:validData.comment,ticket_id:ticket_id ,user_id:1}; 
+    const newComment = await saveSingleRecord<Comment>(comments,commentData);
+   
+
+    return SendSuccessMsg(c,  201, COMMENT_ADDED_SUCCESS,newComment);
+  } catch (err) {
+    throw err;
+  }
+}
+
+
+getComments = async(c: Context) => {
+  try {
+    const id = +c.req.param("id");
+    
+    const commentsData = await getMultipleRecordsByAColumnValue<Comment>(comments,'ticket_id',id);
+    if (!commentsData) {
+      throw new notFoundException(COMMENT_NOT_FOUND);
+    }
+    return SendSuccessMsg(c, 200, COMMENT_FETCHED_SUCCESS, commentsData);
+    
+  } catch (err) {
+    throw err;
+  }
+}
+
+deleteComment = async (c:Context) =>{
+  try{
+    const commentId= +c.req.param('commentId');
+    if (!commentId) {
+      throw new BadRequestException("You entered an invalid id")
+    }
+    const comment = await getRecordById<Comment>(comments, commentId);
+    if (!comment) {
+      throw new NotfoundException(COMMENT_NOT_FOUND);
+    }
+    await deleteRecordById<Comment>(comments,commentId)
+    return SendSuccessMsg(c,  200, COMMENT_DELETED_SUCCESS, null);
+  }catch (error) {
+    throw error
+  }
+}
+getUploadURL = async (c: Context) => {
+
+  try {
+    const reqData = await c.req.json();
+
+    let responseData;
+
+    // const isPublic = Boolean(c.req.query('is_public') || null);
+
+    const validatedReq = await validate<ValidateUploadFile>('file: upload', reqData, FILE_VALIDATION_ERROR);
+
+    let fileKey = fileNameHelper(validatedReq.file_name);
+
+  //   if (isPublic) {
+  //     responseData = await publicS3FileService.generateUploadPresignedUrl(fileKey, validatedReq.file_type);
+  //   }
+  //   else {
+  //     responseData = await s3FileService.generateUploadPresignedUrl(fileKey, validatedReq.file_type);
+
+  //   }
+
+    responseData = await s3FileService.generateUploadPresignedUrl(fileKey, validatedReq.file_type);
+
+    return SendSuccessMsg(c, 200, "Upload URL generated successfully", responseData);
+
+  } catch (error) {
+    throw error;
+  }
+};
+
+getDownloadURL = async (c: Context) => {
+  try {
+    const reqData = await c.req.json();
+    if (!reqData) {
+      throw new BadRequestException('Invalid request body');
+    }
+    console.log(reqData);
+    
+
+    const validatedReq = await validate<ValidateDownloadFile>('file: download', reqData, FILE_VALIDATION_ERROR);
+    console.log(validatedReq.file_key);
+    const responseData = await s3FileService.generateDownloadPresignedUrl(validatedReq.file_key);
+
+    return SendSuccessMsg(c, 200, "Download URL generated successfully", responseData);
+
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+
+}
+export default TicketController

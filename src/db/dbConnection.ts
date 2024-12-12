@@ -2,6 +2,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
 import { dbConfig } from '../config/dbConfig';
 import * as UserSchema from './schemas/users';
+import * as TicketSchema from './schemas/tickets';
 import fs from 'fs';
 
 const { Pool }  = pg;
@@ -18,5 +19,5 @@ const pool = new Pool({
 });
 
 export const db = drizzle({client:pool, schema: {
-    ...UserSchema
+    ...UserSchema, ...TicketSchema
 }})

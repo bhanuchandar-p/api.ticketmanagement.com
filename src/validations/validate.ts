@@ -3,6 +3,10 @@ import UnProcessableEntityException from "../exceptions/unProcessableEntityExcep
 import { AppActivity, ValidateReq } from "../types/appType";
 import { VForgotSchema, VResetSchema, VUserSchema } from "./schema/vUserSchema";
 import { VLoginSchema } from "./schema/vLoginSchema";
+import { VUpdateTicketSchema } from "./schema/vUpdateTicket";
+import { VTicketSchema } from "./schema/vTicketSchema";
+import { VCommentSchema} from "./schema/vCommentsSchema";
+import { VUploadFileSchema, VDownloadFileSchema } from "./schema/vFileSchema";
 
 
 export const validate = async<R extends ValidateReq>(actionType: AppActivity, reqData: any, errMsg: string) => {
@@ -20,6 +24,27 @@ export const validate = async<R extends ValidateReq>(actionType: AppActivity, re
         case 'password: reset':
             schema = VResetSchema;
             break;
+        case 'ticket: create-ticket':
+            schema = VTicketSchema;
+            break;
+        case 'ticket: update':
+            schema = VUpdateTicketSchema;
+            break;
+        case 'comment: create-comment':
+            schema = VCommentSchema;
+            break;
+        case 'comment: delete' :
+            schema = VCommentSchema;            
+            break;
+        case "file: upload":
+            schema = VUploadFileSchema;
+            break;
+        case "file: download":
+            schema = VDownloadFileSchema;
+            break;
+
+        default:
+        
     }
 
     const res = await safeParseAsync(schema!, reqData, { abortEarly: true});
