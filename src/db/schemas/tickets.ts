@@ -1,5 +1,5 @@
 import { pgEnum,integer, pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
-import { users } from "./users"
+import { users } from "./users";
 import { SQL, sql } from "drizzle-orm";
 import { projects } from "./projects";
 
