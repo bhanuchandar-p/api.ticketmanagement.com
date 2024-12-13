@@ -2,7 +2,7 @@
 import { and, count, eq } from 'drizzle-orm';
 import { db } from '../../db/dbConnection'; 
 import { Ticket, tickets } from '../../db/schemas/tickets';
-import { DBTable, DBTableColumns, OrderByQueryData, PaginationInfo, SortDirection, WhereQueryData } from "../../types/dbtypes";
+import { DBTable, DBTableColumns, OrderByQueryData, PaginationInfo, SortDirection, UserType, WhereQueryData } from "../../types/dbtypes";
 import { prepareOrderByQueryConditions, prepareWhereQueryConditionsForTickets } from '../../utils/dbUtils';
 import { ticketAssignes } from '../../db/schemas/ticketAssignes';
 import { users } from '../../db/schemas/users';
@@ -15,7 +15,7 @@ export const fetchPaginatedTickets = async(
     searchString: string,
     reqId: number,
     orderBy?: string,
-    user_type?:string,
+    user_type?:UserType | null,
     status?:string,
     priority?:string,
 

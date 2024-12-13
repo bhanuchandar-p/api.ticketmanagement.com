@@ -84,5 +84,18 @@ export type PaginatedRecords<T extends DBTableRow> = {
   records: T[];
 };
 
+export type JWTPayload = {
+  id: number,
+  email: string,
+  user_type: UserType | null,
+  first_name: string,
+  last_name: string,
+  middle_name: string | null,
+  phone_number: string | null,
+  is_active: string | null
+}
+
+
+export type UserType = 'admin'| 'user' | 'developer';
 
 

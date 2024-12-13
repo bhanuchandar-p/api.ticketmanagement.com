@@ -16,6 +16,7 @@ import { fetchPaginatedTickets } from '../services/db/ticketService';
 import { ValidateDownloadFile, ValidateUploadFile } from '../validations/schema/vFileSchema';
 import { fileNameHelper } from '../utils/appUtils';
 import S3FileService from '../services/s3/s3DataServiceProvider';
+import { JWTPayload } from '../types/dbtypes';
 
 const s3FileService = new S3FileService();
 class TicketController {
@@ -23,7 +24,7 @@ class TicketController {
   addTicket = async (c:Context) => {
     try {
       const requested_body = await c.req.json();
-      const userData = c.get('user_payload');
+      const userData: JWTPayload = c.get('user_payload');
 
       const validData = await validate<ValidateTicketSchema>('ticket: create-ticket', requested_body, "Ticket validation failed");
 
@@ -65,7 +66,7 @@ class TicketController {
       const priority = c.req.query('priority');
       const orderBy = c.req.query('order_by')
 
-      const userData = c.get('user_payload');
+      const userData:JWTPayload = c.get('user_payload');
 
       const ticketsData = await fetchPaginatedTickets(tickets, page, pageSize, searchString, userData.id, orderBy, userData.user_type, status, priority);
 

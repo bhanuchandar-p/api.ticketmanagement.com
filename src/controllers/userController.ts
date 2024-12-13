@@ -8,7 +8,7 @@ import { User, users } from "../db/schemas/users";
 import bcrypt from 'bcrypt';
 import { SendSuccessMsg } from "../helpers/sendSuccessMsg";
 import BadRequestException from "../exceptions/badReqException";
-import { DBTableColumns, OrderByQueryData, SortDirection, WhereQueryData } from "../types/dbtypes";
+import { DBTableColumns, JWTPayload, OrderByQueryData, SortDirection, WhereQueryData } from "../types/dbtypes";
 import NotFoundException from "../exceptions/notFoundException";
 
 class UserController {
@@ -83,7 +83,7 @@ class UserController {
     updatePassword = async(c:Context) => {
         try {
             const req = await c.req.json();
-            const user = c.get('user_payload');
+            const user: JWTPayload = c.get('user_payload');
 
             const validData = await validate<ValidateUpdatePassword>('user:update-password', req, PASSWORD_VALID_ERROR);
                
@@ -109,7 +109,7 @@ class UserController {
 
     getUserbyId = async(c:Context) => {
         try {
-            const user = c.get('user_payload');
+            const user:JWTPayload = c.get('user_payload');
 
             const userData = await getRecordById<User>(users, user.id);
             if (!userData) {
@@ -199,7 +199,7 @@ class UserController {
     }
     updateUser = async(c:Context) => {
         try {
-            const userPayload = c.get('user_payload');
+            const userPayload:JWTPayload = c.get('user_payload');
             const reqBody = await c.req.json();
 
             const validData = await validate<ValidateUpdateUserSchema>('user:update-user', reqBody, USER_UPD_VALID_ERROR);
