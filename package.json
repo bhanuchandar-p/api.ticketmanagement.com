@@ -3,16 +3,16 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "migrations:gen":"npx drizzle-kit generate",
-    "migrations:apply":"npx drizzle-kit migrate",
-    "studio":"npx drizzle-kit studio"
+    "migrations:gen": "npx drizzle-kit generate",
+    "migrations:apply": "npx drizzle-kit migrate",
+    "studio": "npx drizzle-kit studio"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.709.0",
+    "@aws-sdk/s3-request-presigner": "^3.709.0",
     "@getbrevo/brevo": "^2.2.0",
     "@hono/node-server": "^1.13.7",
     "bcrypt": "^5.1.1",
-    "@aws-sdk/client-s3": "^3.709.0",
-    "@aws-sdk/s3-request-presigner": "^3.709.0",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.38.0",
     "hono": "^4.6.13",
