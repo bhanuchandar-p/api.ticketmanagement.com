@@ -57,15 +57,13 @@ export const validate = async<R extends ValidateReq>(actionType: AppActivity, re
             break;
         case "file: download":
             schema = VDownloadFileSchema;
-            break;
-
-        default:
-        
+            break;       
         case 'add:project':
             schema = VProjectSchema;
             break;
         case 'update:project':
-
+            schema = VProjectSchema;
+            break;
     }
 
 
