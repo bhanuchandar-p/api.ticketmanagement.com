@@ -4,17 +4,15 @@ import NotfoundException from '../exceptions/notFoundException';
 import { SendSuccessMsg } from '../helpers/sendSuccessMsg';
 import { validate } from '../validations/validate';
 import { tickets, Ticket, NewTicket } from "../db/schemas/tickets";
-import { COMMENT_ADDED_SUCCESS, COMMENT_DELETED_SUCCESS, COMMENT_FETCHED_SUCCESS, COMMENT_NOT_FOUND, DEF_MSG_401, FILE_VALIDATION_ERROR, TICKET_ASSIGNED_SUCCESS, TICKET_CREATED_SUCCESS, TICKET_DELETED_SUCCESS, TICKET_FETCHED_SUCCESS, TICKET_NOT_FOUND, TICKET_UPDATED_SUCCESS, TICKETS_FETCHED_SUCCESS } from './../constants/appMessages';
+import { COMMENT_ADDED_SUCCESS, COMMENT_DELETED_SUCCESS, COMMENT_FETCHED_SUCCESS, COMMENT_NOT_FOUND, FILE_VALIDATION_ERROR, TICKET_ASSIGNED_SUCCESS, TICKET_CREATED_SUCCESS, TICKET_DELETED_SUCCESS, TICKET_FETCHED_SUCCESS, TICKET_NOT_FOUND, TICKET_UPDATED_SUCCESS } from './../constants/appMessages';
 import { ValidateTicketSchema } from '../validations/schema/vTicketSchema';
-import { deleteRecordById, getMultipleRecordsByAColumnValue, getRecordById, getSingleRecordByAColumnValue, saveSingleRecord, updateRecordById } from '../services/db/baseDbService';
+import { deleteRecordById, getMultipleRecordsByAColumnValue, getRecordById, saveSingleRecord, updateRecordById } from '../services/db/baseDbService';
 import { ValidateUpdateTicket } from '../validations/schema/vUpdateTicket';
-import UnauthorizedException from '../exceptions/unAuthorizedException';
 import { ticketAssignes, TicketAssignes } from '../db/schemas/ticketAssignes';
 import { ValidateCommentsSchema } from '../validations/schema/vCommentsSchema';
-import { Comment, comments, NewComment } from '../db/schemas/comments';
+import { Comment, comments } from '../db/schemas/comments';
 import notFoundException from '../exceptions/notFoundException';
-import NotFoundException from '../exceptions/notFoundException';
-import { getAllRecords } from '../services/db/ticketService';
+import { fetchPaginatedTickets } from '../services/db/ticketService';
 import { ValidateDownloadFile, ValidateUploadFile } from '../validations/schema/vFileSchema';
 import { fileNameHelper } from '../utils/appUtils';
 import S3FileService from '../services/s3/s3DataServiceProvider';
@@ -25,12 +23,12 @@ class TicketController {
   addTicket = async (c:Context) => {
     try {
       const requested_body = await c.req.json();
+      const userData = c.get('user_payload');
 
-      const requested_by = 1;
       const validData = await validate<ValidateTicketSchema>('ticket: create-ticket', requested_body, "Ticket validation failed");
 
-      const dbData = { ...validData, requested_by } as NewTicket;
-      const resTicket = await saveSingleRecord<Ticket>(tickets,dbData);//single row
+      const dbData = { ...validData, requested_by:userData.id } as NewTicket;
+      const resTicket = await saveSingleRecord<Ticket>(tickets,dbData); //single row
 
       return SendSuccessMsg(c,201,TICKET_CREATED_SUCCESS, resTicket);
     } catch (err) {
@@ -43,7 +41,7 @@ class TicketController {
   getTicketById = async(c:Context) => {
     try {
       const ticketId = +c.req.param('id');
-      if (!(ticketId)) {
+      if (!ticketId) {
         throw new BadRequestException("You entered an invalid id")
       }
       const ticket = await getRecordById<Ticket>(tickets, ticketId);
@@ -54,15 +52,27 @@ class TicketController {
     } catch (error) {
       throw error
     }
-  }
+  } 
 
   //get all tickets
-  getAllTickets = async (c:Context) => {
+
+  getPaginatedTickets = async (c:Context) => {
     try {
-      const ticketsData = await getAllRecords(tickets);
-      if (!ticketsData || ticketsData.length==0) {  
+      const page = +(c.req.query('page')|| 1);
+      const pageSize = +(c.req.query('pageSize') || 10);
+      const searchString = c.req.query('search_string') || '';
+      const status = c.req.query('status')
+      const priority = c.req.query('priority');
+      const orderBy = c.req.query('order_by')
+
+      const userData = c.get('user_payload');
+
+      const ticketsData = await fetchPaginatedTickets(tickets, page, pageSize, searchString, userData.id, orderBy, userData.user_type, status, priority);
+
+      if (!ticketsData || ticketsData.records.length==0) {
         throw new NotfoundException(TICKET_NOT_FOUND);
       }
+
       return SendSuccessMsg(c,  200, TICKET_FETCHED_SUCCESS, ticketsData);
     } catch (error) {
       throw error

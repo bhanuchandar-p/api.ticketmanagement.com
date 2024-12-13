@@ -131,7 +131,7 @@ export const fetchProjectTickets = async<R extends DBTableRow, C extends keyof R
     const recordsCount = await countQuery;
     const total_records = recordsCount[0]?.total || 0;
     const total_pages = Math.ceil(total_records / pageSize) || 1;
-  
+    
     const pagination_info: PaginationInfo = {
       total_records,
       total_pages,
@@ -147,7 +147,7 @@ export const fetchProjectTickets = async<R extends DBTableRow, C extends keyof R
         records: []
       };
     }
-    const whereConditions = prepareWhereQueryConditionsForTickets(projects, whereQueryData);
+    const whereConditions = prepareWhereQueryConditionsForTickets(tickets, whereQueryData);
     const orderByConditions = prepareOrderByQueryConditions(table, orderByQueryData);
 
 

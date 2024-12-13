@@ -1,7 +1,7 @@
 import { Context } from "hono";
 import { validate } from "../validations/validate";
 import { ValidateProjectSchema, ValidateProjectUpdateSchema } from "../validations/schema/vProjectSchema";
-import { getMultipleRecordsByAColumnValue, getPaginatedRecordsConditionally, getRecordById, getSingleRecordByAColumnValue, saveRecords, saveSingleRecord, softDeleteRecordById, updateRecordById } from "../services/db/baseDbService";
+import { getSingleRecordByAColumnValue, saveRecords, saveSingleRecord, softDeleteRecordById, updateRecordById } from "../services/db/baseDbService";
 import { project, projects } from "../db/schemas/projects";
 import ConflictException from "../exceptions/conflictException";
 import { NewProjectuser, ProjectUser, projectUsers } from "../db/schemas/projectUsers";
@@ -10,8 +10,8 @@ import NotFoundException from "../exceptions/notFoundException";
 import BadRequestException from "../exceptions/badReqException";
 import { fetchProjectTickets, fetchProjectUsers, getAsingleProject, getPaginatedProjectsConditionally } from "../services/db/projectService";
 import { DBTableColumns, OrderByQueryData, SortDirection, WhereQueryData } from "../types/dbtypes";
-import { DEV_FETCH_SUCCESS, INV_ID, PROJ_ALL_FETCH_SUCCESS, PROJ_CD_EXISTS, PROJ_CREATED, PROJ_DELETED, PROJ_FETCH_SUCCESS, PROJ_NM_EXISTS, PROJ_NOT_FOUND, PROJ_UPDATED, PROJ_USERS_ADD_SUCCESS } from "../constants/appMessages";
-import { Ticket, tickets, TicketsTable } from "../db/schemas/tickets";
+import { DATA_N_FOND, DEV_FETCH_SUCCESS, DEV_NOT_FND, INV_ID, PROJ_ALL_FETCH_SUCCESS, PROJ_CD_EXISTS, PROJ_CREATED, PROJ_DELETED, PROJ_FETCH_SUCCESS, PROJ_NM_EXISTS, PROJ_NOT_FOUND, PROJ_TKT_FETCH_SUCCESS, PROJ_UPD_VALID_ERROR, PROJ_UPDATED, PROJ_USERS_ADD_SUCCESS } from "../constants/appMessages";
+import { Ticket, tickets } from "../db/schemas/tickets";
 
 
 class ProjectController {
@@ -74,7 +74,7 @@ class ProjectController {
             const req = await c.req.json();
             const reqId = +c.req.param('id');
 
-            const validData = await validate<ValidateProjectUpdateSchema>('update:project',req,'Update Project Validation');
+            const validData = await validate<ValidateProjectUpdateSchema>('update:project',req, PROJ_UPD_VALID_ERROR);
             const projectRecordByName = await getSingleRecordByAColumnValue<project>(projects,'name', validData.name)
             if (projectRecordByName){
                 throw new ConflictException(PROJ_NM_EXISTS)
@@ -120,12 +120,12 @@ class ProjectController {
         try {
             const reqId = +c.req.param('id');
             if (!reqId){
-                throw new BadRequestException('Invalid Id');
+                throw new BadRequestException(INV_ID);
             }
 
             const projectUserData = await fetchProjectUsers(reqId);
             if (projectUserData.length===0){
-                throw new NotFoundException('Developers not found');
+                throw new NotFoundException(DEV_NOT_FND);
             }
 
             return SendSuccessMsg(c,200, DEV_FETCH_SUCCESS, projectUserData)
@@ -179,7 +179,7 @@ class ProjectController {
 
               const result = await getPaginatedProjectsConditionally(projects, page, pageSize, whereQueryData, orderByQueryData);
               if (!result) {
-                throw new NotFoundException("Data is not found");
+                throw new NotFoundException(DATA_N_FOND);
               }
 
             return SendSuccessMsg(c, 200, PROJ_ALL_FETCH_SUCCESS, result);
@@ -207,7 +207,7 @@ class ProjectController {
     getProjectbasedTickets = async(c:Context) => {
         try {
             const reqProjId = +c.req.param('id');
-            const page = +(c.req.param('page')) || 1
+            const page = +(c.req.query('page') || 1);
             const pageSize = +(c.req.query('pageSize') || 10);
             const searchString = c.req.query('search_string') || '';
             const status = c.req.query('status')
@@ -255,10 +255,10 @@ class ProjectController {
             const result = await fetchProjectTickets(tickets, reqProjId, page, pageSize, whereQueryData, orderByQueryData);
 
             if (!result) {
-                throw new NotFoundException("Data is not found");
+                throw new NotFoundException(DATA_N_FOND);
             }
 
-            return SendSuccessMsg(c,200, 'Project Tickets fetched successfully', result);
+            return SendSuccessMsg(c,200, PROJ_TKT_FETCH_SUCCESS, result);
         } catch (err) {
             throw err;
         }

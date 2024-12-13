@@ -6,14 +6,14 @@ import { tickets } from "./tickets";
 import { ticketAssignes } from "./ticketAssignes";
 
 export const userRelations = relations(users, ({ many }) => ({
-    projects: many(projects),
+    // projects: many(projects),
     project_users: many(projectUsers),
     tickets: many(tickets),
     ticket_assignes: many(ticketAssignes),
 }))
 
 export const projectRelations = relations(projects, ({ many }) => ({
-    users: many(users),
+    // users: many(users),
     project_users: many(projectUsers),
     tickets: many(tickets),
 }))

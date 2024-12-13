@@ -43,6 +43,7 @@ export const PASSWORD_REQ_UPPERCASE = 'Password must contain at least one upperc
 export const PASSWORD_REQ_NUMBER = 'Password must contain at least one number';
 export const PASSWORD_MISMATCH = 'Passwords does not match';
 export const PASSWORD_RESET_SUCCESS = 'Password reset successfully';
+export const PASSWORD_VALID_ERROR = 'Password update details are invalid';
 
 export const PHONE_INVALID = 'Phone number is invalid';
 export const PHONE_MIN_LENGTH = 'Phone number must be at least 10 characters';
@@ -56,6 +57,10 @@ export const RESET_VALID_ERROR = 'Reset password details are invalid';
 export const USER_NOT_FOUND = 'User not found';
 export const USER_EXISTS = 'User already exists';
 export const USER_TYPE_INVALID = 'User type is invalid';
+export const ADMIN_VALID_ERROR = 'Admin user creation details are invalid';
+export const USER_CREAT_VALID_ERROR = 'User creation details are invalid';
+export const DEV_CREAT_VALID_ERROR = 'Developer user creation details are invalid';
+export const USER_UPD_VALID_ERROR = 'User update details are invalid';
 
 export const INVALID_TOKEN = 'Invalid token';
 export const INVALID_REFRESH_TOKEN = 'Invalid refresh token';
@@ -74,6 +79,20 @@ export const SIGNUP_SUCCESS = 'User created successfully';
 export const FILE_KEY_INVALID='File Key Invalid';
 export const FILE_KEY_MISSING='File Key Required';
 export const FILE_SIZE_IS_NUMBER='File Size must be a number';
+
+// ----------UserModule ---------
+
+export const ADMIN_EXISTS = 'Admin already exists';
+export const ADMIN_CREAT_SUCCESS = 'Admin user created successfully';
+export const USER_CREAT_SUCCESS = 'User created successfully';
+export const DEV_CREAT_SUCCESS = 'Developer user created successfully';
+export const CUR_PSWD_WRNG = 'Current password is wrong';
+export const PSWD_UPDATE_SUCCESS = 'Password updated successfully';
+export const USER_FET_SUCCESS = 'User detailes fetched successfully';
+export const USER_DATA_GET_SUCCESS = 'Users data fetched successfully';
+export const USER_DEL_SUCCESS = 'User deleted successfully';
+export const USER_UPD_SUCCESS = 'User updated successfully';
+export const DATA_N_FOND = 'Data not found';
 
 // --------Tickets Module Messages --------
 
@@ -148,3 +167,6 @@ export const INV_ID = 'Invalid id';
 export const DEV_NOT_FND = 'Developers not found';
 export const DEV_FETCH_SUCCESS = 'Developers fetched successfully';
 export const PROJ_ALL_FETCH_SUCCESS = 'Projects fetched successfully';
+export const PROJ_CREAT_VALID_ERROR = 'Project creation details are invalid';
+export const PROJ_UPD_VALID_ERROR = 'Project update details are invalid';
+export const PROJ_TKT_FETCH_SUCCESS = 'Tickets fetched successfully';

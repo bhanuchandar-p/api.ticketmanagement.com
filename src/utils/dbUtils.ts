@@ -71,10 +71,6 @@ const prepareWhereQueryConditionsForTickets = <R extends DBTableRow>(table: DBTa
         whereQueries.push(inArray(columnInfo, values[i]));
       } else if (typeof values[i] === 'string' && values[i].includes('%')) {
         whereQueries.push(sql`${columnInfo} ILIKE ${values[i]}`);
-      } else if (columns[i] === 'deleted_at') {
-        whereQueries.push(isNull(columnInfo));
-      } else if (columns[i] === 'project_id') {
-        whereQueries.push(sql`${columnInfo} = ${values}`);
       } else if (typeof values[i] === 'object' && values[i] !== null) {
         const value = values[i] as { gte?: Date | string; lte?: Date | string; };
 
@@ -107,9 +103,6 @@ const prepareWhereQueryConditionsForProjects = <R extends DBTableRow>(table: DBT
       }
       else if (typeof values[i] === 'string' && values[i].includes('%')) {
         whereQueries.push(sql`${columnInfo} ILIKE ${values[i]}`);
-      }
-      else if (columns[i] === 'deleted_at') {
-        whereQueries.push(sql`${columnInfo} IS NULL`);
       }
       else if (typeof values[i] === 'object' && values[i] !== null) {
         const value = values[i] as { gte?: Date | string; lte?: Date | string };
