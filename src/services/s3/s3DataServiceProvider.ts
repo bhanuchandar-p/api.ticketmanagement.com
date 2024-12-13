@@ -20,7 +20,7 @@ class S3FileService {
     constructor() {
         this.config = {
             credentials: {
-                accessKeyId: s3Config.access_key_id!,//! it takes undefined if the env variable is not set
+                accessKeyId: s3Config.access_key_id!,//! it must be not null
                 secretAccessKey: s3Config.secret_access_key!
             },
             region: s3Config.buket_region!,

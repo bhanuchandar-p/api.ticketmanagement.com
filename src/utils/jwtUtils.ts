@@ -7,6 +7,8 @@ import { getRecordById } from "../services/db/baseDbService";
 import { User, users } from "../db/schemas/users";
 
 
+const jwtTime = Math.floor(Date.now() / 1000);
+
 export const generateResetToken = async(payload: any) =>{
     const token = await sign(payload, process.env.JWT_SECRET as string);
     return token;
@@ -24,8 +26,8 @@ export const genToken = async(user_id: number) =>{
 
 export const generateAllTokens = async(payload: JWTPayload) => {
 
-    const access_token = await sign({...payload, exp: jwtConfig.exp_in}, jwtConfig.secret);
-    const refresh_token = await sign({...payload, exp: jwtRefreshConfig.exp_in}, jwtRefreshConfig.secret);
+    const access_token = await sign({...payload, exp: jwtTime+jwtConfig.exp_in}, jwtConfig.secret);
+    const refresh_token = await sign({...payload, exp: jwtTime+jwtRefreshConfig.exp_in}, jwtRefreshConfig.secret);
     return { access_token, refresh_token };
 }
 

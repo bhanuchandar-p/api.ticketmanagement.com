@@ -7,6 +7,7 @@ import { VUpdateTicketSchema } from "./schema/vUpdateTicket";
 import { VTicketSchema } from "./schema/vTicketSchema";
 import { VCommentSchema} from "./schema/vCommentsSchema";
 import { VUploadFileSchema, VDownloadFileSchema } from "./schema/vFileSchema";
+import { VProjectSchema } from "./schema/vProjectSchema";
 
 
 export const validate = async<R extends ValidateReq>(actionType: AppActivity, reqData: any, errMsg: string) => {
@@ -33,7 +34,7 @@ export const validate = async<R extends ValidateReq>(actionType: AppActivity, re
         case 'user:update-password':
             schema = VUpdateUserSchema;
             break;
-        case 'user:create-developer-user':
+        case 'user:create-developer':
             schema = VDeveloperUserSchema;
             break;
         case 'user:create-user':
@@ -60,7 +61,13 @@ export const validate = async<R extends ValidateReq>(actionType: AppActivity, re
 
         default:
         
+        case 'add:project':
+            schema = VProjectSchema;
+            break;
+        case 'update:project':
+
     }
+
 
     const res = await safeParseAsync(schema!, reqData, { abortEarly: true});
     if (!res.success){

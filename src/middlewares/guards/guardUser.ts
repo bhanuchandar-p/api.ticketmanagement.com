@@ -8,7 +8,7 @@ import NotFoundException from "../../exceptions/notFoundException";
 import { USER_NOT_FOUND } from "../../constants/appMessages";
 import ForbiddenException from "../../exceptions/forbiddenException";
 
-const canCreateRegularUser = createMiddleware(async (c: Context, next) => {
+export const canCreateRegularUser = createMiddleware(async (c: Context, next) => {
     try {
       await _canManageUser(c, 'user:create-user');
       await next();
@@ -16,8 +16,18 @@ const canCreateRegularUser = createMiddleware(async (c: Context, next) => {
       throw error;
     }
   });
+
+export const canCreateDeveloperUser = createMiddleware(async (c: Context, next) => {
+    try {
+      await _canManageUser(c, 'user:create-developer');
+      await next();
+    } catch (error: any) {
+      throw error;
+    }
+  });
+
   
-  const canViewAllUsers = createMiddleware(async (c: Context, next) => {
+export const canViewAllUsers = createMiddleware(async (c: Context, next) => {
     try {
       await _canManageUser(c, 'user:view-all-users');
       await next();
@@ -29,18 +39,22 @@ const canCreateRegularUser = createMiddleware(async (c: Context, next) => {
   const _canManageUser = async (c: Context, activity: UserActivity, orgId?: number, userId?: number) => {
   
     const userPayload = await getUserDetailsFromToken(c);
-    const topDogs = ['admin'] as const;
+    const topDogs = ['admin']
   
     let canProceed = false;
-    let isTopDog = topDogs.includes(userPayload.user_type);
+    let isTopDog = topDogs.includes(userPayload.user_type as string);
   
     switch (activity) {
   
-      case 'user:create-admin-user':
-        canProceed = userPayload.user_type === 'admin';
-        break;
+      // case 'user:create-admin-user':
+      //   canProceed = userPayload.user_type === 'admin';   --- Use, incase if we have multiple admins
+      //   break;
   
       case 'user:create-user':
+        canProceed = isTopDog;
+        break;
+  
+      case 'user:create-developer':
         canProceed = isTopDog;
         break;
   
@@ -53,12 +67,9 @@ const canCreateRegularUser = createMiddleware(async (c: Context, next) => {
           throw new NotFoundException(USER_NOT_FOUND);
         }
   
-        if (topDogs.includes(userBeingUpdated.user_type)) {
+        if (topDogs.includes(userBeingUpdated.user_type as string)) {
           canProceed = isTopDog;
         } else {
-          // user_type is 'user' - action can be edited in the following 2 cases
-          // 1. can be done by topDog
-          // 2. can be done by the user himself/herself
           if (isTopDog || userPayload.id === userId) {
             canProceed = true;
           }
@@ -81,3 +92,4 @@ const canCreateRegularUser = createMiddleware(async (c: Context, next) => {
   
     return;
   };
+

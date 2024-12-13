@@ -21,11 +21,6 @@ import S3FileService from '../services/s3/s3DataServiceProvider';
 
 const s3FileService = new S3FileService();
 class TicketController {
-    uploadAttachment(arg0: string, uploadAttachment: any) {
-        throw new Error("Method not implemented.");
-    }
-    
-
   // Add a new ticket
   addTicket = async (c:Context) => {
     try {

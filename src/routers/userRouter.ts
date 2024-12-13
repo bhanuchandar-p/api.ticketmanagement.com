@@ -1,15 +1,17 @@
 import { Hono } from 'hono';
 import UserController from '../controllers/userController';
+import { isAuthorized } from '../middlewares/isAuthorized';
+import { canCreateDeveloperUser, canCreateRegularUser } from '../middlewares/guards/guardUser';
 
 const userRouter = new Hono();
 const userController = new UserController();
 
-userRouter.post('/add-developer',userController.createDeveloperUser);
-userRouter.post('/add-user',userController.createUser);
-userRouter.get('/',userController.getUsersPaginated);
-userRouter.get('/:id',userController.getUserbyId);
-userRouter.patch('/',userController.updateUser);
-userRouter.delete('/:id',userController.softdeleteUser);
-userRouter.patch('/password',userController.updatePassword);
+userRouter.post('/add-developer',canCreateDeveloperUser,userController.createDeveloperUser);
+userRouter.post('/add-user',canCreateRegularUser,userController.createUser);
+userRouter.get('/',isAuthorized,userController.getUsersPaginated);
+userRouter.get('/:id',isAuthorized,userController.getUserbyId);
+userRouter.patch('/',isAuthorized,userController.updateUser);
+userRouter.delete('/:id',isAuthorized,userController.softdeleteUser);
+userRouter.patch('/password',isAuthorized,userController.updatePassword);
 
 export default userRouter;
