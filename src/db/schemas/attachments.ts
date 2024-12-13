@@ -9,7 +9,7 @@ type Metadata = {
 
 export const attachments = pgTable('attachments', {
     id: serial().primaryKey(),  
-    file_path: varchar().notNull(),
+    file_key: varchar().notNull(),
     ticket_id: integer().references(() => tickets.id,{onDelete: 'cascade'}).notNull(),
     meta_data: json().$type<Metadata>(),
     created_at: timestamp().defaultNow(),

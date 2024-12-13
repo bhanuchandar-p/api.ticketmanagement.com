@@ -45,9 +45,9 @@ serve({
   port
 })
 app.onError((err: any, c: Context) => {
-  c.status(err.status || 555);
+  c.status(err.status || 500);
   return c.json({
-    status: err.status || 555,
+    status: err.status || 500,
     success: false,
     message: err.message || "Internal server error",
     errData: err.errData || undefined,
