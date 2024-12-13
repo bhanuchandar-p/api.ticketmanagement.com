@@ -64,3 +64,59 @@ export const TOKEN_N_FOND = 'Token not found';
 export const FORGOT_EMAIL_SENT = 'Forgot password email link has been sent successfully';
 export const LOGIN_SUCCESS = 'User login successful';
 export const SIGNUP_SUCCESS = 'User created successfully';
+
+
+export const FILE_KEY_INVALID='File Key Invalid';
+export const FILE_KEY_MISSING='File Key Required';
+export const FILE_SIZE_IS_NUMBER='File Size must be a number';
+
+// --------Tickets Module Messages --------
+
+export const TICKET_NOT_FOUND = "Ticket not found";
+export const TICKET_CREATED_SUCCESS = "Ticket created successfully";
+export const TICKET_UPDATED_SUCCESS = "Ticket updated successfully";
+export const TICKET_DELETED_SUCCESS = "Ticket deleted successfully";
+export const TICKETS_FETCHED_SUCCESS = "Tickets fetched successfully";
+export const TICKET_FETCHED_SUCCESS = "Ticket fetched successfully";
+export const TICKET_ASSIGNED_SUCCESS = "Ticket assigned successfully";
+
+export const TICKET_TITLE_REQUIRED = "Ticket title is required";
+export const TICKET_TITLE_STRING = "Ticket title must be a string";
+export const TICKET_TITLE_MIN_LENGTH = "Ticket title must be at least 5 characters long";
+export const TICKET_TITLE_MAX_LENGTH = "Ticket title must be at most 50 characters long";
+
+
+export const TICKET_DESCRIPTION_STRING = "Ticket description must be a string";
+export const TICKET_DESCRIPTION_MIN_LENGTH = "Ticket description must be at least 20 characters long";
+export const TICKET_DESCRIPTION_MAX_LENGTH = "Ticket description must be at most 400 characters long";
+
+export const TICKET_PRIORITY_REQUIRED = "Ticket priority is required";
+export const TICKET_STATUS_REQUIRED = "Ticket status is required";
+export const TICKET_PRIORITY = ['low', 'medium', 'high'] as const;
+export const TICKET_STATUS = ['open', 'closed', 'inprogress'] as const;
+export const TICKET_PRIORITY_VALIDATION = "Ticket priority must be low, medium or high";
+export const TICKET_STATUS_VALIDATION = "Ticket status must be open, closed or inprogress";
+export const PAGE_NOT_EXIST = 'The Requested page is doesnot exist';
+
+//--------Comments Module Messages --------
+
+export const COMMENT_NOT_FOUND = "Comment is not found";
+export const COMMENT_REQUIRED = "Comment is required";
+export const COMMENT_MIN_LENGTH = "Comment must be at least 5 characters long";
+export const COMMENT_MAX_LENGTH = "Comment must be at most 400 characters long";
+export const COMMENT_ADDED_SUCCESS = "Comment added successfully";
+export const COMMENT_DELETED_SUCCESS = "Comment deleted successfully";
+export const COMMENT_FETCHED_SUCCESS = "Comment fetched successfully";
+
+
+//-------attachments module messages ------
+export const ATTACHMENT_NOT_FOUND = "Attachment not found";
+export const ATTACHMENT_FETCHED_SUCCESS = "Attachment fetched successfully";
+export const ATTACHMENT_DELETED_SUCCESS = "Attachment deleted successfully";
+export const ATTACHMENT_ADDED_SUCCESS = "Attachment added successfully";
+export const FILE_NAME_INVALID = 'File Name Invalid';
+export const FILE_MISSING = 'File Required';
+export const FILE_TYPE_MISSING = 'File Type Required';
+export const FILE_TYPE_INVALID = 'File Type Invalid';
+export const FILE_VALIDATION_ERROR = 'File Details provided do not meet the required validation criteria';
+
