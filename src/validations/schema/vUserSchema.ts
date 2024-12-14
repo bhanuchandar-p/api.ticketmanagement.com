@@ -1,4 +1,4 @@
-import { email, forward, InferOutput, intersect, maxLength, minLength, never, nonNullable, object, optional, partialCheck, picklist, pipe, pipeAsync, rawTransformAsync, regex, string, value } from "valibot";
+import { email, forward, InferOutput, intersect, maxLength, minLength, never, nonNullable, object, optional, partialCheck, picklist, pipe, pipeAsync, rawTransformAsync, regex, string, transform, trim, value } from "valibot";
 import { EMAIL_EXISTS, EMAIL_INVALID, EMAIL_MAX_LENGTH, EMAIL_REQ, F_NAME_MAX_LENGTH, F_NAME_MIN_LENGTH, F_NAME_REQ, L_NAME_MAX_LENGTH, L_NAME_REQ, PASSWORD_INVALID, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, PASSWORD_MISMATCH, PASSWORD_REQ, PASSWORD_REQ_LOWERCASE, PASSWORD_REQ_NUMBER, PASSWORD_REQ_UPPERCASE, PHONE_MAX_LENGTH, PHONE_MIN_LENGTH, USER_TYPE_INVALID } from "../../constants/appMessages";
 import { userEmailExists } from "../customValidation";
 import { prepareValibotIssue } from "../prepareValibotIssue";
@@ -8,6 +8,7 @@ const user_type = ['admin','user','developer'] as const;
 export const VEmailSchema = pipe(
     nonNullable(string(EMAIL_REQ)),
     email(EMAIL_INVALID),
+    trim(),
     maxLength(30,EMAIL_MAX_LENGTH)
 )
 
@@ -24,17 +25,21 @@ export const VPasswordSchema = pipe(
 export const VUserSchema = object({
     first_name: pipe(nonNullable(string(F_NAME_REQ)),
                 minLength(3,F_NAME_MIN_LENGTH),
-                maxLength(40,F_NAME_MAX_LENGTH)
+                maxLength(40,F_NAME_MAX_LENGTH),
+                trim()
     ),
     last_name: pipe(nonNullable(string(L_NAME_REQ)),
-                maxLength(40,L_NAME_MAX_LENGTH)),
+                maxLength(40,L_NAME_MAX_LENGTH),
+                trim()
+              ),
     middle_name: optional(string()),
     email: VEmailSchema,
     password: VPasswordSchema,
     phone_number: optional(pipe(
                     string(),
                     minLength(10,PHONE_MIN_LENGTH),
-                    maxLength(14,PHONE_MAX_LENGTH)
+                    maxLength(14,PHONE_MAX_LENGTH),
+                    trim()
     )),
 
 })
@@ -144,16 +149,21 @@ export const VUpdatePasswordSchema = pipe(
 export const VUpdateUserSchema = object({
     first_name: optional(pipe(nonNullable(string(F_NAME_REQ)),
                 minLength(3,F_NAME_MIN_LENGTH),
-                maxLength(40,F_NAME_MAX_LENGTH))
+                maxLength(40,F_NAME_MAX_LENGTH),
+                trim()
+      ),
     ),
     last_name: optional(pipe(nonNullable(string(L_NAME_REQ)),
-                maxLength(40,L_NAME_MAX_LENGTH))),
-    middle_name: optional(string()),
+                maxLength(40,L_NAME_MAX_LENGTH),
+                trim()
+              )),
+    middle_name: optional(pipe(string(),trim())),
     email: optional(VEmailSchema),
     phone_number: optional(pipe(
                     string(),
                     minLength(10,PHONE_MIN_LENGTH),
-                    maxLength(14,PHONE_MAX_LENGTH)
+                    maxLength(14,PHONE_MAX_LENGTH),
+                    trim()
     )),
 })
 

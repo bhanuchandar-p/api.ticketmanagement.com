@@ -8,7 +8,7 @@ import { NewProjectuser, ProjectUser, projectUsers } from "../db/schemas/project
 import { SendSuccessMsg } from "../helpers/sendSuccessMsg";
 import NotFoundException from "../exceptions/notFoundException";
 import BadRequestException from "../exceptions/badReqException";
-import { fetchProjectTickets, fetchProjectUsers, getAsingleProject, getPaginatedProjectsConditionally } from "../services/db/projectService";
+import { fetchAllPaginatedProjects, fetchProjectTickets, fetchProjectUsers, getAsingleProject, getPaginatedProjectsConditionally } from "../services/db/projectService";
 import { DBTableColumns, JWTPayload, OrderByQueryData, SortDirection, WhereQueryData } from "../types/dbtypes";
 import { DATA_N_FOND, DEV_FETCH_SUCCESS, DEV_NOT_FND, INV_ID, PROJ_ALL_FETCH_SUCCESS, PROJ_CD_EXISTS, PROJ_CREATED, PROJ_DELETED, PROJ_FETCH_SUCCESS, PROJ_NM_EXISTS, PROJ_NOT_FOUND, PROJ_TKT_FETCH_SUCCESS, PROJ_UPD_VALID_ERROR, PROJ_UPDATED, PROJ_USERS_ADD_SUCCESS, PROJ_VALID_ERROR } from "../constants/appMessages";
 import { Ticket, tickets } from "../db/schemas/tickets";
@@ -137,52 +137,21 @@ class ProjectController {
 
     getAllProjects = async(c:Context) => {
         try {
-            const page = +(c.req.param('page')) || 1
-            const pageSize = +(c.req.query('pageSize') || 10);
+            const page = +(c.req.query('cur_page') || 1)
+            const pageSize = +(c.req.query('page_size') || 10);
             const searchString = c.req.query('search_string') || '';
-            const status = c.req.query('status')
+            const status = c.req.query('status');
+            const orderBy = c.req.query('order_by')
 
-            let orderByQueryData: OrderByQueryData<project> = {
-                columns: ['updated_at'],
-                values: ['desc']
-              }
-              const orderBy = c.req.query('order_by')
-              if (orderBy) {
-                let orderByColumns: DBTableColumns<project>[] = []
-                let orderByValues: SortDirection[] = []
-                const queryStrings = orderBy.split(',')
-                for (const queryString of queryStrings) {
-                  const [column, value] = queryString.split(':')
-                  orderByColumns.push(column as DBTableColumns<project>)
-                  orderByValues.push(value as SortDirection)
-                }
-                orderByQueryData = {
-                  columns: orderByColumns,
-                  values: orderByValues
-                }
-              }
-              let whereQueryData: WhereQueryData<project> = {
-                // default where query
-                columns: ['status'],
-                values: ['active'],
-              };
-        
-              if (searchString) {
-                whereQueryData.columns.push('name');
-                whereQueryData.values.push(`%${searchString}%`);
-              }
+            const userData: JWTPayload = c.get('user_payload');
+            
+            const res = await fetchAllPaginatedProjects(projects,page,pageSize,userData.user_type,userData.id,searchString,status,orderBy);
 
-              if (status) {
-                whereQueryData.columns.push('status');
-                whereQueryData.values.push(status);
-              }
+            if (!res ||res.records.length===0 ){
+                throw new NotFoundException(PROJ_NOT_FOUND);
+            }
 
-              const result = await getPaginatedProjectsConditionally(projects, page, pageSize, whereQueryData, orderByQueryData);
-              if (!result) {
-                throw new NotFoundException(DATA_N_FOND);
-              }
-
-            return SendSuccessMsg(c, 200, PROJ_ALL_FETCH_SUCCESS, result);
+            return SendSuccessMsg(c, 200, PROJ_ALL_FETCH_SUCCESS, res);
         } catch (error) {
             throw error;
         }
@@ -207,8 +176,8 @@ class ProjectController {
     getProjectbasedTickets = async(c:Context) => {
         try {
             const reqProjId = +c.req.param('id');
-            const page = +(c.req.query('page') || 1);
-            const pageSize = +(c.req.query('pageSize') || 10);
+            const page = +(c.req.query('cur_page') || 1);
+            const pageSize = +(c.req.query('page_size') || 10);
             const searchString = c.req.query('search_string') || '';
             const status = c.req.query('status')
             const priority = c.req.query('priority')

@@ -86,7 +86,7 @@ class AuthController {
             const token = await generateResetToken(payload);
             await saveSingleRecord<ResetPasswordToken>(resetPasswordTokens, {token, user_id: userData.id});
 
-            const link = emailConfig.BASE_URL+`/reset-password?token=${token}`;
+            const link = emailConfig.BASE_URL+`/auth/reset-password?token=${token}`;
             await sendEmailtoResetPassword(validData.email, link);
 
             return SendSuccessMsg(c, 200, FORGOT_EMAIL_SENT);

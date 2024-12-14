@@ -1,9 +1,9 @@
 import { db } from "../../db/dbConnection"
-import { projects } from "../../db/schemas/projects"
+import { project, projects } from "../../db/schemas/projects"
 import { projectUsers } from "../../db/schemas/projectUsers"
 import { users } from "../../db/schemas/users"
-import { and, count, eq } from "drizzle-orm"
-import { DBTable, DBTableRow, OrderByQueryData, PaginationInfo, WhereQueryData } from "../../types/dbtypes"
+import { and, count, countDistinct, eq } from "drizzle-orm"
+import { DBTable, DBTableColumns, DBTableRow, OrderByQueryData, PaginationInfo, SortDirection, UserType, WhereQueryData } from "../../types/dbtypes"
 import { prepareOrderByQueryConditions, prepareWhereQueryConditionsForProjects, prepareWhereQueryConditionsForTickets } from "../../utils/dbUtils"
 import { tickets } from "../../db/schemas/tickets"
 
@@ -33,6 +33,71 @@ export const getAsingleProject = async(id:number) => {
                         .innerJoin(users,eq(projects.created_by,users.id))
                         .where(eq(projects.id,id)).limit(1);
     return res[0];
+}
+
+
+export const fetchAllPaginatedProjects = async(
+  table:DBTable,
+  page:number,
+  pageSize:number,
+  user_type: UserType|null,
+  user_id:number,
+  searchString?:string,
+  status?:string,
+  orderBy?:string,
+)=>{
+
+  let orderByQueryData: OrderByQueryData<project> = {
+                  columns: ['updated_at'],
+                  values: ['desc']
+  }
+
+  if (orderBy) {
+    let orderByColumns: DBTableColumns<project>[] = []
+    let orderByValues: SortDirection[] = []
+    const queryStrings = orderBy.split(',')
+    for (const queryString of queryStrings) {
+      const [column, value] = queryString.split(':')
+      orderByColumns.push(column as DBTableColumns<project>)
+      orderByValues.push(value as SortDirection)
+    }
+    orderByQueryData = {
+      columns: orderByColumns,
+      values: orderByValues
+    }
+  }
+    let whereQueryData: WhereQueryData<project> = {
+      // default where query
+      columns: ['status'],
+      values: ['active'],
+    };
+
+    if (searchString) {
+      whereQueryData.columns.push('name');
+      whereQueryData.values.push(`%${searchString}%`);
+    }
+
+    if (status) {
+      whereQueryData.columns.push('status');
+      whereQueryData.values.push(status);
+    }
+
+    let finalRecords;
+
+    if (user_type === 'admin') {
+      finalRecords = await getPaginatedProjectsConditionally(table, page, pageSize, whereQueryData, orderByQueryData)
+    }
+
+    if (user_type === 'developer'){
+      finalRecords = await getPaginatedProjectsForDeveloper(table, page, pageSize, user_id, whereQueryData, orderByQueryData);
+    }
+
+    if (user_type === 'user'){
+      finalRecords = await getPaginatedProjectsForUsers(table, user_id, page, pageSize, whereQueryData, orderByQueryData);
+
+    }
+
+    return finalRecords;
 }
 
 export const getPaginatedProjectsConditionally = async<R extends DBTableRow, C extends keyof R = keyof R>(
@@ -100,6 +165,119 @@ export const getPaginatedProjectsConditionally = async<R extends DBTableRow, C e
         
     })
     return {pagination_info,records:projectsRecord};
+  };
+
+
+export const getPaginatedProjectsForDeveloper = async<R extends DBTableRow, C extends keyof R = keyof R>(
+    table: DBTable,
+    page: number,
+    pageSize: number,
+    userId: number,
+    whereQueryData: WhereQueryData<R>,
+    orderByQueryData?: OrderByQueryData<R>,
+  ) => {
+    let countQuery = db.select({ total: count(projectUsers.project_id)}).from(projectUsers).where(eq(projectUsers.user_id,userId));
+
+    const recordsCount = await countQuery;
+    const total_records = recordsCount[0]?.total || 0;
+    const total_pages = Math.ceil(total_records / pageSize) || 1;
+  
+    const pagination_info: PaginationInfo = {
+      total_records,
+      total_pages,
+      page_size: pageSize,
+      current_page: page > total_pages ? total_pages : page,
+      next_page: page >= total_pages ? null : page + 1,
+      prev_page: page <= 1 ? null : page - 1
+    };
+  
+    if (total_records === 0) {
+      return {
+        pagination_info,
+        records: []
+      };
+    }
+    const whereConditions = prepareWhereQueryConditionsForProjects(projects, whereQueryData);
+    const orderByConditions = prepareOrderByQueryConditions(table, orderByQueryData);
+
+    const reqRecord = {
+      id:projects.id,
+      name:projects.name,
+      description:projects.description,
+      project_code:projects.project_code,
+      created_by:projects.created_by,
+      status:projects.status,
+      created_at:projects.created_at,
+      updated_at:projects.updated_at,
+  }
+    const projectsRecord = await db.selectDistinct({...reqRecord}).from(projects)
+                                   .where(whereConditions?.length? and(...whereConditions,eq(projectUsers.user_id,userId)) : and(eq(projectUsers.user_id,userId)))
+                                   .innerJoin(projectUsers, eq(projects.id, projectUsers.project_id))
+                                   .limit(pageSize)
+                                   .offset((page - 1) * pageSize)
+                                   .orderBy(...orderByConditions);
+
+
+    return {pagination_info,records:projectsRecord};
+  };
+
+
+export const getPaginatedProjectsForUsers = async<R extends DBTableRow, C extends keyof R = keyof R>(
+    table: DBTable,
+    userId: number,
+    page: number,
+    pageSize: number,
+    whereQueryData: WhereQueryData<R>,
+    orderByQueryData?: OrderByQueryData<R>,
+  ) => {
+    let countQuery = db.select({ total: countDistinct(tickets.project_id)})
+    .from(tickets)
+    .where(eq(tickets.requested_by, userId));
+    const recordsCount = await countQuery;
+    const total_records = recordsCount[0]?.total || 0;
+    const total_pages = Math.ceil(total_records / pageSize) || 1;
+  
+    const pagination_info: PaginationInfo = {
+      total_records,
+      total_pages,
+      page_size: pageSize,
+      current_page: page > total_pages ? total_pages : page,
+      next_page: page >= total_pages ? null : page + 1,
+      prev_page: page <= 1 ? null : page - 1
+    };
+  
+    if (total_records === 0) {
+      return {
+        pagination_info,
+        records: []
+      };
+    }
+    const whereConditions = prepareWhereQueryConditionsForProjects(projects, whereQueryData);
+    const orderByConditions = prepareOrderByQueryConditions(table, orderByQueryData);
+
+    const whereCnd = whereConditions?.length? and(...whereConditions,eq(tickets.requested_by, userId)) : and(eq(tickets.requested_by, userId));
+    const reqRecord = {
+        id:projects.id,
+        name:projects.name,
+        description:projects.description,
+        project_code:projects.project_code,
+        created_by:projects.created_by,
+        status:projects.status,
+        created_at:projects.created_at,
+        updated_at:projects.updated_at,
+    }
+
+    const projectsRecord = await db.selectDistinct({...reqRecord}).from(tickets)
+                                   .innerJoin(users, eq(users.id, tickets.requested_by))
+                                   .innerJoin(projects, eq(projects.id,tickets.project_id))
+                                   .where((whereCnd))
+                                   .limit(pageSize)
+                                   .offset((page - 1) * pageSize)
+                                   .orderBy(...orderByConditions)
+  
+    
+    return {pagination_info,records:projectsRecord};
+
   };
 
 

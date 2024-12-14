@@ -126,8 +126,8 @@ class UserController {
     getUsersPaginated = async(c:Context) => {
         try {
             // const user = c.get('user');
-            const page = +(c.req.query('page') || 1);
-            const pageSize = +(c.req.query('pageSize') || 10);
+            const page = +(c.req.query('cur_page') || 1);
+            const pageSize = +(c.req.query('page_size') || 10);
             const searchString = c.req.query('search_string') || '';
             const userType = c.req.query('user_type') || '';
 

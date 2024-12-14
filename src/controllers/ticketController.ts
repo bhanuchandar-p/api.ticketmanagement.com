@@ -59,8 +59,8 @@ class TicketController {
 
   getPaginatedTickets = async (c:Context) => {
     try {
-      const page = +(c.req.query('page')|| 1);
-      const pageSize = +(c.req.query('pageSize') || 10);
+      const page = +(c.req.query('cur_page')|| 1);
+      const pageSize = +(c.req.query('page_size') || 10);
       const searchString = c.req.query('search_string') || '';
       const status = c.req.query('status')
       const priority = c.req.query('priority');
