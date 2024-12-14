@@ -10,7 +10,7 @@ import NotFoundException from "../exceptions/notFoundException";
 import BadRequestException from "../exceptions/badReqException";
 import { fetchProjectTickets, fetchProjectUsers, getAsingleProject, getPaginatedProjectsConditionally } from "../services/db/projectService";
 import { DBTableColumns, JWTPayload, OrderByQueryData, SortDirection, WhereQueryData } from "../types/dbtypes";
-import { DATA_N_FOND, DEV_FETCH_SUCCESS, DEV_NOT_FND, INV_ID, PROJ_ALL_FETCH_SUCCESS, PROJ_CD_EXISTS, PROJ_CREATED, PROJ_DELETED, PROJ_FETCH_SUCCESS, PROJ_NM_EXISTS, PROJ_NOT_FOUND, PROJ_TKT_FETCH_SUCCESS, PROJ_UPD_VALID_ERROR, PROJ_UPDATED, PROJ_USERS_ADD_SUCCESS } from "../constants/appMessages";
+import { DATA_N_FOND, DEV_FETCH_SUCCESS, DEV_NOT_FND, INV_ID, PROJ_ALL_FETCH_SUCCESS, PROJ_CD_EXISTS, PROJ_CREATED, PROJ_DELETED, PROJ_FETCH_SUCCESS, PROJ_NM_EXISTS, PROJ_NOT_FOUND, PROJ_TKT_FETCH_SUCCESS, PROJ_UPD_VALID_ERROR, PROJ_UPDATED, PROJ_USERS_ADD_SUCCESS, PROJ_VALID_ERROR } from "../constants/appMessages";
 import { Ticket, tickets } from "../db/schemas/tickets";
 
 
@@ -20,7 +20,7 @@ class ProjectController {
             const req = await c.req.json();
             const userPayload: JWTPayload = c.get('user_payload');
 
-            const validData = await validate<ValidateProjectSchema>('add:project',req,'Project Creation Validation Failed');
+            const validData = await validate<ValidateProjectSchema>('add:project',req,PROJ_VALID_ERROR);
 
             const projectRecordByName = await getSingleRecordByAColumnValue<project>(projects,'name', validData.name)
             if (projectRecordByName){

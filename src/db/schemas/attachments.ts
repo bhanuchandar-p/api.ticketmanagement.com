@@ -1,4 +1,4 @@
-import { json, pgTable, serial, timestamp, varchar,integer } from "drizzle-orm/pg-core";
+import { json, pgTable, serial, timestamp, varchar,integer, index } from "drizzle-orm/pg-core";
 import { tickets } from "./tickets";
 
 type Metadata = {
@@ -14,7 +14,10 @@ export const attachments = pgTable('attachments', {
     meta_data: json().$type<Metadata>(),
     created_at: timestamp().defaultNow(),
     updated_at: timestamp()
-})
+},
+(table) => [
+    index('attachments_ticket_id_idx').on(table.ticket_id)
+])
 
 export type Attachment = typeof attachments.$inferSelect;
 export type NewAttachment = typeof attachments.$inferInsert;
