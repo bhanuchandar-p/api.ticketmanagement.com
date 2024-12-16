@@ -10,7 +10,7 @@ userRouter.post('/add-developer',canCreateDeveloperUser,userController.createDev
 userRouter.post('/add-user',canCreateRegularUser,userController.createUser);
 userRouter.get('/',canViewAllUsers,userController.getUsersPaginated);
 userRouter.get('/:id',isAuthorized,userController.getUserbyId);
-userRouter.patch('/',isAuthorized,userController.updateUser);
+userRouter.patch('/:id',isAuthorized,userController.updateUser);
 userRouter.delete('/:id',isAuthorized,userController.softdeleteUser);
 userRouter.patch('/password',isAuthorized,userController.updatePassword);
 
