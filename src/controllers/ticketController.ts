@@ -1,4 +1,4 @@
-import { Context } from 'hono';
+import { Context, MiddlewareHandler } from 'hono';
 import BadRequestException from '../exceptions/badReqException';
 import NotfoundException from '../exceptions/notFoundException';
 import { SendSuccessMsg } from '../helpers/sendSuccessMsg';
@@ -21,6 +21,9 @@ import { Attachment, attachments } from '../db/schemas/attachments';
 
 const s3FileService = new S3FileService();
 class TicketController {
+    addFileToTicket(arg0: string, isAuthorized: MiddlewareHandler<any, string, {}>, addFileToTicket: any) {
+        throw new Error("Method not implemented.");
+    }
   // Add a new ticket
   addTicket = async (c:Context) => {
     try {
@@ -81,23 +84,7 @@ class TicketController {
     }
   }
 
-  //get tickets for the particular projects
-  getTicketsByProjectId = async (c:Context) => {
-    try {
-      const projectId = +c.req.param('id');
-      if (!(projectId)) {
-        throw new BadRequestException("You entered an invalid id")
-      }
-      const ticketsData = await getMultipleRecordsByAColumnValue<Ticket>(tickets, 'project_id', projectId);
-      if (!ticketsData || ticketsData.length==0) {  
-        throw new NotfoundException(TICKET_NOT_FOUND);
-      }
-      return SendSuccessMsg(c,  200, TICKET_FETCHED_SUCCESS, ticketsData);
-    } catch (error) {
-      throw error
-    }
-  }
-
+  
 
    // Update the ticket
    updateTicket = async (c:Context) => {
@@ -144,17 +131,19 @@ class TicketController {
 //assign ticket
 assignTicket = async (c:Context) => {
   try {
+    console.log("hi")
       const ticketId = +c.req.param('id');
-      const {agent_id} = await c.req.json();
+      const agentId = +c.req.param('agentId');
+      console.log("agentId",agentId);
 
-      if (!ticketId || !agent_id) {
+      if (!ticketId || !agentId) {
           throw new BadRequestException("You entered an invalid id")
       }
       const data= await getRecordById<Ticket>(tickets, ticketId);
       if (!data) {
           throw new NotfoundException(TICKET_NOT_FOUND);
       }
-      const assignedTicket = await saveSingleRecord<TicketAssignes>(ticketAssignes,{ticket_id:ticketId,user_id:agent_id});
+      const assignedTicket = await saveSingleRecord<TicketAssignes>(ticketAssignes,{ticket_id:ticketId,user_id:agentId});
       if (assignedTicket === null) {  
           throw new NotfoundException(TICKET_NOT_FOUND);
       }
@@ -260,6 +249,8 @@ getDownloadURL = async (c: Context) => {
   }
 };
 
+
+//add
 addAttachmentToTicket = async (c: Context) => {
   try {
     const reqData = await c.req.json();
@@ -274,8 +265,6 @@ addAttachmentToTicket = async (c: Context) => {
     const fileKey = fileNameHelper(validatedReq.file_name);
 
     const {...metaData} = {file_size:validatedReq.file_size,file_name:validatedReq.file_name,file_type:validatedReq.file_type};
-
-    // const fileUrl = await s3FileService.generateUploadPresignedUrl(fileKey, fileType);
 
     const fileData = await saveSingleRecord<Attachment>(attachments,{file_key:fileKey,ticket_id:ticketId,meta_data:metaData});
 
@@ -293,8 +282,6 @@ deleteTicketAttachmentById = async (c: Context) => {
     if (!attachmentId) {
       throw new BadRequestException("You entered an invalid id")
     }
-    // console.log(fileId);
-
     const attachment = await deleteRecordById<Attachment>(attachments,attachmentId);
     if (!attachment) {
       throw new NotfoundException(FILE_NOT_FOUND);

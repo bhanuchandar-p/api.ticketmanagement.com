@@ -107,7 +107,7 @@ const fetchTicketsForAdmin = async(
     if (total_records === 0) {
       return {
         records: [],
-        // pagination_info,
+        pagination_info,
       };
     }
     const whereConditions = prepareWhereQueryConditionsForTickets(table, whereQueryData);
@@ -121,8 +121,8 @@ const fetchTicketsForAdmin = async(
     });
   
     return {
-      pagination_info,
-      records: ticketsData
+      records: ticketsData,
+      pagination_info
     };
 }
 

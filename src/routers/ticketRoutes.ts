@@ -5,13 +5,12 @@ import { isAuthorized } from "../middlewares/isAuthorized";
 const ticketsRouter = new Hono();
 const ticketController = new TicketsController();
 
-// ticketsRouter.get("/", TicketsController.filterAllTickets);
+//tickets Routes
 ticketsRouter.get("/:id",isAuthorized,ticketController.getTicketById); 
 ticketsRouter.post("/", isAuthorized,ticketController.addTicket);
 ticketsRouter.put("/:id", isAuthorized,ticketController.updateTicket);
 ticketsRouter.delete("/:id", isAuthorized,ticketController.deleteTicket);
-ticketsRouter.patch("/:id/assign",isAuthorized, ticketController.assignTicket);
-// ticketsRouter.get("/all",ticketController.getAllTickets);
+ticketsRouter.patch("/:id/assign/:agentId",isAuthorized, ticketController.assignTicket);
 ticketsRouter.get('/',isAuthorized,ticketController.getPaginatedTickets);
 
 
