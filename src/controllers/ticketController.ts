@@ -286,14 +286,20 @@ addAttachmentToTicket = async (c: Context) => {
 }
 
 //delete file from ticket
-deleteTicketAttachment = async (c: Context) => {
+deleteTicketAttachmentById = async (c: Context) => {
   try {
-    console.log("hi")
-    const fileId = +c.req.param('fileId');
+   
+    const attachmentId = +c.req.param('attachmentId');
+    if (!attachmentId) {
+      throw new BadRequestException("You entered an invalid id")
+    }
     // console.log(fileId);
 
-    await deleteRecordById<Attachment>(attachments,fileId);
-
+    const attachment = await deleteRecordById<Attachment>(attachments,attachmentId);
+    if (!attachment) {
+      throw new NotfoundException(FILE_NOT_FOUND);
+    }  
+     
     return SendSuccessMsg(c, 200, FILE_DELETED_SUCCESS);
   } catch (error) {
     throw error;
@@ -311,7 +317,7 @@ getAttachmentsByTicketId = async (c: Context) => {
     if  (!files) {
       throw new NotfoundException(FILE_NOT_FOUND);
     }
-    return SendSuccessMsg(c, 200, FILE_FETCHED_SUCCESS,files);
+    return SendSuccessMsg(c, 200, FILE_FETCHED_SUCCESS, files);
   } catch (error) {
     throw error;
   } 
