@@ -6,6 +6,8 @@ import bcrypt from 'bcrypt'
 import { tickets } from "../db/schemas/tickets"
 import { ticketAssignes } from "../db/schemas/ticketAssignes"
 import { projectUsers } from "../db/schemas/projectUsers"
+import { attachments } from "../db/schemas/attachments"
+import { comments } from "../db/schemas/comments"
 
 const pwd_for_user = bcrypt.hash('User1234',10)
 const pwd = '$2a$10$2ghf94cr2gk1IRBOMZSa1ej9d6TMzgIA62WsNjNbE4quOcjZl9vNO'
@@ -125,3 +127,74 @@ export const seedTicketAssignees = async(c:Context) => {
     }
 
 }
+//seed comments 
+export const seedComments = async (c: Context) => {
+    try {
+      const TOTAL_COMMENTS = 50000; 
+      const BATCH_SIZE = 5000; 
+  
+      const commentOptions = ["This is a comment", "Another comment", "Yet another comment"];
+      const randNumber = (min: number, max:number) => {
+        return Math.round(Math.random() * (max - min)) + min;
+      }
+  
+      for (let batch = 0; batch < TOTAL_COMMENTS / BATCH_SIZE; batch++) {
+        const empty: any = [];
+  
+        for (let i = 0; i < BATCH_SIZE; i++) {
+          const randomUserId = randNumber(4,100)// Generate random user ID
+          const randomTicketId = randNumber(1,100000); // Generate random ticket ID
+          const randomComment = commentOptions[Math.floor(Math.random() * commentOptions.length)]; // Random comment
+  
+          empty.push({
+            comment: randomComment,
+            ticket_id: randomTicketId,
+            user_id: randomUserId,
+            reply_to: null,
+            created_at: randBetweenDate({ from: new Date('01/01/2024'), to: new Date('05/01/2024') }),
+            updated_at: randRecentDate({days:20})
+          });
+        }
+  
+        // Insert batch
+        await db.insert(comments).values(empty);
+      }
+      return c.json({ success: true, message: 'Data Seeded successfully'});
+    } catch (e) {
+      throw e;
+    }
+  };
+
+  //seed attachments
+  export const seedAttachments = async (c: Context) => {
+    try {
+      const TOTAL_ATTACHMENTS = 50000; 
+      const BATCH_SIZE = 5000; 
+  
+      const randNumber = (min: number, max:number) => {
+        return Math.round(Math.random() * (max - min)) + min;
+      }
+  
+      for (let batch = 0; batch < TOTAL_ATTACHMENTS / BATCH_SIZE; batch++) {
+        const empty: any = [];
+  
+        for (let i = 0; i < BATCH_SIZE; i++) {
+          const randomTicketId = randNumber(1,100000); // Generate random ticket ID
+  
+          empty.push({
+            ticket_id: randomTicketId,
+            file_name: randText(),
+            file_key: randText(),
+            created_at: randBetweenDate({ from: new Date('01/01/2024'), to: new Date('05/01/2024') }),
+            updated_at: randRecentDate({days:20})
+          });
+        }
+  
+        // Insert batch
+        await db.insert(attachments).values(empty);
+      }
+      return c.json({ success: true, message: 'Data Seeded successfully'});
+    } catch (e) {
+      throw e;
+    }
+  };
