@@ -7,6 +7,7 @@ import { User, users } from "../../db/schemas/users";
 import NotFoundException from "../../exceptions/notFoundException";
 import { USER_NOT_FOUND } from "../../constants/appMessages";
 import ForbiddenException from "../../exceptions/forbiddenException";
+import { JWTPayload } from "../../types/dbtypes";
 
 export const canCreateRegularUser = createMiddleware(async (c: Context, next) => {
     try {
@@ -69,7 +70,7 @@ const _canManageUser = async (c: Context, activity: UserActivity, orgId?: number
   
       case 'user:view-user':
       case 'user:update-user':
-        // If user_type is of topDog category, then action can be done only by topDogs
+          // If user_type is of topDog category, then action can be done only by topDogs
         const userBeingUpdated = await getRecordById<User>(users, userId!);
   
         if (!userBeingUpdated) {
