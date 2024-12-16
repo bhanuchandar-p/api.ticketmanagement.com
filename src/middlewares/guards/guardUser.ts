@@ -35,8 +35,17 @@ export const canViewAllUsers = createMiddleware(async (c: Context, next) => {
       throw error;
     }
   });
-  
-  const _canManageUser = async (c: Context, activity: UserActivity, orgId?: number, userId?: number) => {
+
+export const canViewUser = createMiddleware(async (c: Context, next) => {
+    try {
+      await _canManageUser(c, 'user:view-user');
+      await next();
+    } catch (error: any) {
+      throw error;
+    }
+})
+
+const _canManageUser = async (c: Context, activity: UserActivity, orgId?: number, userId?: number) => {
   
     const userPayload = await getUserDetailsFromToken(c);
     const topDogs = ['admin']
