@@ -24,6 +24,9 @@ ticketsRouter.delete("/:id/comments/:commentId",isAuthorized, ticketController.d
 //attachments Routes
 ticketsRouter.post("/:id/attachments/upload", isAuthorized,ticketController.getUploadURL); 
 ticketsRouter.post("/:id/attachments/download", isAuthorized,ticketController.getDownloadURL);
-// ticketsRouter.delete("/:id/attachments/:attachmentId", ticketController.deleteAttachment);
+ticketsRouter.delete("/:id/attachments/:attachmentId", ticketController.deleteTicketAttachmentById);
+ticketsRouter.post("/:id/attachments", isAuthorized,ticketController.addAttachmentToTicket);
+ticketsRouter.get("/:id/attachments", isAuthorized,ticketController.getAttachmentsByTicketId);
+
 
 export default ticketsRouter;

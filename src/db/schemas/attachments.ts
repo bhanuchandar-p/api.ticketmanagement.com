@@ -2,7 +2,7 @@ import { json, pgTable, serial, timestamp, varchar,integer, index } from "drizzl
 import { tickets } from "./tickets";
 
 type Metadata = {
-    file_size: number;
+    file_size: number | null;
     file_name: string;
     file_type: string;
 };
