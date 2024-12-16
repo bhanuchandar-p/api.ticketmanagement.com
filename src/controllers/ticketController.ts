@@ -4,7 +4,7 @@ import NotfoundException from '../exceptions/notFoundException';
 import { SendSuccessMsg } from '../helpers/sendSuccessMsg';
 import { validate } from '../validations/validate';
 import { tickets, Ticket, NewTicket } from "../db/schemas/tickets";
-import { COMMENT_ADDED_SUCCESS, COMMENT_DELETED_SUCCESS, COMMENT_FETCHED_SUCCESS, COMMENT_NOT_FOUND, FILE_VALIDATION_ERROR, TICKET_ASSIGNED_SUCCESS, TICKET_CREATED_SUCCESS, TICKET_DELETED_SUCCESS, TICKET_FETCHED_SUCCESS, TICKET_NOT_FOUND, TICKET_UPDATED_SUCCESS } from './../constants/appMessages';
+import { COMMENT_ADDED_SUCCESS, COMMENT_DELETED_SUCCESS, COMMENT_FETCHED_SUCCESS, COMMENT_NOT_FOUND, FILE_ADDED_SUCCESS, FILE_DELETED_SUCCESS, FILE_FETCHED_SUCCESS, FILE_NOT_FOUND, FILE_VALIDATION_ERROR, TICKET_ASSIGNED_SUCCESS, TICKET_CREATED_SUCCESS, TICKET_DELETED_SUCCESS, TICKET_FETCHED_SUCCESS, TICKET_NOT_FOUND, TICKET_UPDATED_SUCCESS } from './../constants/appMessages';
 import { ValidateTicketSchema } from '../validations/schema/vTicketSchema';
 import { deleteRecordById, getMultipleRecordsByAColumnValue, getRecordById, saveSingleRecord, updateRecordById } from '../services/db/baseDbService';
 import { ValidateUpdateTicket } from '../validations/schema/vUpdateTicket';
@@ -17,6 +17,7 @@ import { ValidateDownloadFile, ValidateUploadFile } from '../validations/schema/
 import { fileNameHelper } from '../utils/appUtils';
 import S3FileService from '../services/s3/s3DataServiceProvider';
 import { JWTPayload } from '../types/dbtypes';
+import { Attachment, attachments } from '../db/schemas/attachments';
 
 const s3FileService = new S3FileService();
 class TicketController {
@@ -258,6 +259,63 @@ getDownloadURL = async (c: Context) => {
     throw error;
   }
 };
+
+addAttachmentToTicket = async (c: Context) => {
+  try {
+    const reqData = await c.req.json();
+    const ticketId = +c.req.param('id');
+
+    if (!ticketId) {
+      throw new BadRequestException("You entered an invalid id")
+    }
+
+    const validatedReq = await validate<ValidateUploadFile>('file: upload', reqData, FILE_VALIDATION_ERROR);
+
+    const fileKey = fileNameHelper(validatedReq.file_name);
+
+    const {...metaData} = {file_size:validatedReq.file_size,file_name:validatedReq.file_name,file_type:validatedReq.file_type};
+
+    // const fileUrl = await s3FileService.generateUploadPresignedUrl(fileKey, fileType);
+
+    const fileData = await saveSingleRecord<Attachment>(attachments,{file_key:fileKey,ticket_id:ticketId,meta_data:metaData});
+
+    return SendSuccessMsg(c, 200, FILE_ADDED_SUCCESS);
+  } catch (error) {
+    throw error;
+  }   
+}
+
+//delete file from ticket
+deleteTicketAttachment = async (c: Context) => {
+  try {
+    console.log("hi")
+    const fileId = +c.req.param('fileId');
+    // console.log(fileId);
+
+    await deleteRecordById<Attachment>(attachments,fileId);
+
+    return SendSuccessMsg(c, 200, FILE_DELETED_SUCCESS);
+  } catch (error) {
+    throw error;
+  }
+}
+
+//get files from ticket
+getAttachmentsByTicketId = async (c: Context) => {
+  try {
+    const ticketId = +c.req.param('id');
+    if (!ticketId) {
+      throw new BadRequestException("You entered an invalid id")
+    }
+    const files = await getMultipleRecordsByAColumnValue<Attachment>(attachments,'ticket_id',ticketId);
+    if  (!files) {
+      throw new NotfoundException(FILE_NOT_FOUND);
+    }
+    return SendSuccessMsg(c, 200, FILE_FETCHED_SUCCESS,files);
+  } catch (error) {
+    throw error;
+  } 
+}
 
 
 

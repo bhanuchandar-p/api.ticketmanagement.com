@@ -143,6 +143,10 @@ export const FILE_MISSING = 'File Required';
 export const FILE_TYPE_MISSING = 'File Type Required';
 export const FILE_TYPE_INVALID = 'File Type Invalid';
 export const FILE_VALIDATION_ERROR = 'File Details provided do not meet the required validation criteria';
+export const FILE_ADDED_SUCCESS = 'File added successfully';    
+export const FILE_DELETED_SUCCESS = 'File deleted successfully';
+export const FILE_NOT_FOUND = 'File not found';
+export const FILE_FETCHED_SUCCESS = 'File fetched successfully';
 
 
 
