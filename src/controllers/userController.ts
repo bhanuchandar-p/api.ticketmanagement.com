@@ -109,9 +109,9 @@ class UserController {
 
     getUserbyId = async(c:Context) => {
         try {
-            const user:JWTPayload = c.get('user_payload');
+            const userId = +c.req.param('id');
 
-            const userData = await getRecordById<User>(users, user.id);
+            const userData = await getRecordById<User>(users, userId!);
             if (!userData) {
                 throw new NotFoundException(USER_NOT_FOUND);
             }
@@ -199,17 +199,18 @@ class UserController {
     }
     updateUser = async(c:Context) => {
         try {
-            const userPayload:JWTPayload = c.get('user_payload');
+            // const userPayload:JWTPayload = c.get('user_payload');
+            const userId  = +c.req.param('id');
             const reqBody = await c.req.json();
 
             const validData = await validate<ValidateUpdateUserSchema>('user:update-user', reqBody, USER_UPD_VALID_ERROR);
 
-            const existingUser = await getRecordById<User>(users, userPayload.id);
+            const existingUser = await getRecordById<User>(users, userId);
             if (!existingUser) {
                 throw new BadRequestException(USER_NOT_FOUND);
             }
 
-            const userData = await updateRecordById<User>(users, userPayload.id, validData);
+            const userData = await updateRecordById<User>(users, userId, validData);
 
             const { password, ...userDetails } = userData;
 

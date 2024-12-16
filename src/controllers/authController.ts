@@ -1,9 +1,9 @@
 import { Context } from "hono";
 import { validate } from "../validations/validate";
-import { EMAIL_NOT_EXISTS, FORGOT_EMAIL_SENT, FORGOT_VALID_ERROR, INV_CREDS, INVALID_TOKEN, LOGIN_SUCCESS, LOGIN_VALID_ERROR, PASSWORD_MISMATCH, PASSWORD_RESET_SUCCESS, RESET_VALID_ERROR, SIGNUP_SUCCESS, SIGNUP_VALID_ERROR, TKN_GEN, TKN_USED, TKN_VERIFIED, TOKEN_N_FOND, USER_EXISTS, USER_NOT_FOUND } from "../constants/appMessages";
+import { EMAIL_NOT_EXISTS, FORGOT_EMAIL_SENT, FORGOT_VALID_ERROR, INV_CREDS, INVALID_TOKEN, LOGIN_SUCCESS, LOGIN_VALID_ERROR, PASSWORD_MISMATCH, PASSWORD_RESET_SUCCESS, RESET_VALID_ERROR, SIGNUP_SUCCESS, SIGNUP_VALID_ERROR, TKN_GEN, TKN_USED, TOKEN_N_FOND, USER_EXISTS, USER_NOT_FOUND } from "../constants/appMessages";
 import bcrypt from 'bcrypt';
 import { ValidateForgotSchema, ValidateResetSchema, ValidateUserSchema } from "../validations/schema/vUserSchema";
-import { getSingleRecordByAColumnValue, getRecordById, getSingleRecordByMultipleColumnValues, saveSingleRecord, updateRecordById, getSingleRecordByEmail } from "../services/db/baseDbService";
+import { getSingleRecordByAColumnValue, getRecordById, saveSingleRecord, updateRecordById } from "../services/db/baseDbService";
 import { User, users } from "../db/schemas/users";
 import { SendSuccessMsg } from "../helpers/sendSuccessMsg";
 import { ValidateLoginSchema } from "../validations/schema/vLoginSchema";
