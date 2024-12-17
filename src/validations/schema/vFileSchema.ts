@@ -23,10 +23,10 @@ export const VDownloadFileSchema = object({
       nonEmpty(FILE_KEY_MISSING),
       // regex(/^attachments\//, FILE_KEY_INVALID),
   ),
-  file_type: pipe(
-    string(FILE_TYPE_INVALID),
-    nonEmpty(FILE_TYPE_MISSING),
-  ),
+  // file_type: pipe(
+  //   string(FILE_TYPE_INVALID),
+  //   nonEmpty(FILE_TYPE_MISSING),
+  // ),
 });
 
 export type ValidateUploadFile = InferOutput<typeof VUploadFileSchema>;

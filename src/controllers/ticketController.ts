@@ -4,9 +4,9 @@ import NotfoundException from '../exceptions/notFoundException';
 import { SendSuccessMsg } from '../helpers/sendSuccessMsg';
 import { validate } from '../validations/validate';
 import { tickets, Ticket, NewTicket } from "../db/schemas/tickets";
-import { COMMENT_ADDED_SUCCESS, COMMENT_DELETED_SUCCESS, COMMENT_FETCHED_SUCCESS, COMMENT_NOT_FOUND, FILE_ADDED_SUCCESS, FILE_DELETED_SUCCESS, FILE_FETCHED_SUCCESS, FILE_NOT_FOUND, FILE_VALIDATION_ERROR, TICKET_ASSIGNED_SUCCESS, TICKET_CREATED_SUCCESS, TICKET_DELETED_SUCCESS, TICKET_FETCHED_SUCCESS, TICKET_NOT_FOUND, TICKET_UPDATED_SUCCESS } from './../constants/appMessages';
+import { COMMENT_ADDED_SUCCESS, COMMENT_DELETED_SUCCESS, COMMENT_FETCHED_SUCCESS, COMMENT_NOT_FOUND, COMMENT_VALID_ERROR, FILE_ADDED_SUCCESS, FILE_DELETED_SUCCESS, FILE_FETCHED_SUCCESS, FILE_NOT_FOUND, FILE_VALIDATION_ERROR, TICKET_ASSIGNED_SUCCESS, TICKET_CREATED_SUCCESS, TICKET_DELETED_SUCCESS, TICKET_FETCHED_SUCCESS, TICKET_NOT_FOUND, TICKET_UPDATED_SUCCESS, TICKET_UPDTAE_ERROR, TICKET_VALIDATION_ERROR } from './../constants/appMessages';
 import { ValidateTicketSchema } from '../validations/schema/vTicketSchema';
-import { deleteRecordById, getMultipleRecordsByAColumnValue, getRecordById, saveSingleRecord, updateRecordById } from '../services/db/baseDbService';
+import { deleteRecordById, getMultipleRecordsByAColumnValue, getRecordById, saveSingleRecord, softDeleteRecordById, updateRecordById } from '../services/db/baseDbService';
 import { ValidateUpdateTicket } from '../validations/schema/vUpdateTicket';
 import { ticketAssignes, TicketAssignes } from '../db/schemas/ticketAssignes';
 import { ValidateCommentsSchema } from '../validations/schema/vCommentsSchema';
@@ -18,6 +18,7 @@ import { fileNameHelper } from '../utils/appUtils';
 import S3FileService from '../services/s3/s3DataServiceProvider';
 import { JWTPayload } from '../types/dbtypes';
 import { Attachment, attachments } from '../db/schemas/attachments';
+import UnauthorizedException from '../exceptions/unAuthorizedException';
 
 const s3FileService = new S3FileService();
 class TicketController {
@@ -29,10 +30,12 @@ class TicketController {
     try {
       const requested_body = await c.req.json();
       const userData: JWTPayload = c.get('user_payload');
+      console.log("userData",userData);
 
-      const validData = await validate<ValidateTicketSchema>('ticket: create-ticket', requested_body, "Ticket validation failed");
+      const validData = await validate<ValidateTicketSchema>('ticket: create-ticket', requested_body, TICKET_VALIDATION_ERROR);
 
       const dbData = { ...validData, requested_by:userData.id } as NewTicket;
+      console.log("dbData",dbData); 
       const resTicket = await saveSingleRecord<Ticket>(tickets,dbData); //single row
 
       return SendSuccessMsg(c,201,TICKET_CREATED_SUCCESS, resTicket);
@@ -93,12 +96,18 @@ class TicketController {
       if (!(ticketId)) {
         throw new BadRequestException("You entered an invalid id")
       }
+      const userData:JWTPayload = c.get('user_payload');
+      
       const data= await getRecordById<Ticket>(tickets, ticketId);
+      
       if (!data) {
         throw new NotfoundException(TICKET_NOT_FOUND);
       }
+      if(userData.id!== data.requested_by){
+        throw new UnauthorizedException("You are not authorized to update this ticket")
+      }
       const ticketData = await c.req.json(); 
-      const validData = await validate<ValidateUpdateTicket>('ticket: update', ticketData, "Ticket update failed");
+      const validData = await validate<ValidateUpdateTicket>('ticket: update', ticketData, TICKET_UPDTAE_ERROR);
       const updatedTicket = await updateRecordById<Ticket>(tickets,ticketId, validData);
       if (updatedTicket === null) {
         throw new NotfoundException(TICKET_NOT_FOUND);
@@ -113,12 +122,19 @@ class TicketController {
   deleteTicket = async (c:Context) =>{
     try{
       const ticketId= +c.req.param('id');
+
+      const userData:JWTPayload = c.get('user_payload');
+
       if (!ticketId) {
         throw new BadRequestException("You entered an invalid id")
       }
       const ticket = await getRecordById<Ticket>(tickets, ticketId);
       if (!ticket) {
         throw new NotfoundException(TICKET_NOT_FOUND);
+      }
+
+      if(userData.id!== ticket.requested_by){
+        throw new UnauthorizedException("You are not authorized to delete this ticket")
       }
       await deleteRecordById<Ticket>(tickets,ticketId)
       return SendSuccessMsg(c,  200, TICKET_DELETED_SUCCESS, null);
@@ -131,17 +147,19 @@ class TicketController {
 //assign ticket
 assignTicket = async (c:Context) => {
   try {
-    console.log("hi")
       const ticketId = +c.req.param('id');
-      const agentId = +c.req.param('agentId');
-      console.log("agentId",agentId);
-
+      const agentId = +c.req.param('agent_id');
+      const userData:JWTPayload = c.get('user_payload');
+     
       if (!ticketId || !agentId) {
           throw new BadRequestException("You entered an invalid id")
       }
       const data= await getRecordById<Ticket>(tickets, ticketId);
       if (!data) {
           throw new NotfoundException(TICKET_NOT_FOUND);
+      }
+      if(userData.user_type!="admin"){
+        throw new UnauthorizedException("You are not authorized to assign this ticket")
       }
       const assignedTicket = await saveSingleRecord<TicketAssignes>(ticketAssignes,{ticket_id:ticketId,user_id:agentId});
       if (assignedTicket === null) {  
@@ -159,10 +177,10 @@ assignTicket = async (c:Context) => {
 addComment = async(c: Context) => {
   try {
     const comment = await c.req.json();
-    const ticket_id = +c.req.param("id");
+    const ticketId = +c.req.param("id");
 
-  const validData = await validate<ValidateCommentsSchema>( 'comment: create-comment', comment, "Comment validation failed");
-    const {...commentData }= { comment:validData.comment,ticket_id:ticket_id ,user_id:1}; 
+  const validData = await validate<ValidateCommentsSchema>( 'comment: create-comment', comment, COMMENT_VALID_ERROR);
+    const {...commentData }= { comment:validData.comment,ticket_id:ticketId ,user_id:1}; 
     const newComment = await saveSingleRecord<Comment>(comments,commentData);
    
 
@@ -191,15 +209,19 @@ getComments = async(c: Context) => {
 //delete comment
 deleteComment = async (c:Context) =>{
   try{
-    const commentId= +c.req.param('commentId');
+    const commentId= +c.req.param('comment_id');
     if (!commentId) {
       throw new BadRequestException("You entered an invalid id")
     }
+    const userPayload: JWTPayload = c.get('user_payload');
     const comment = await getRecordById<Comment>(comments, commentId);
     if (!comment) {
       throw new NotfoundException(COMMENT_NOT_FOUND);
     }
-    await deleteRecordById<Comment>(comments,commentId)
+    if (comment.user_id !== userPayload.id) {
+      throw new UnauthorizedException("You are not authorized to delete this comment");
+    }
+    await softDeleteRecordById<Comment>(comments,commentId,{reply_to:null})
     return SendSuccessMsg(c,  200, COMMENT_DELETED_SUCCESS, null);
   }catch (error) {
     throw error
@@ -235,11 +257,8 @@ getDownloadURL = async (c: Context) => {
     if (!reqData) {
       throw new BadRequestException('Invalid request body');
     }
-    console.log(reqData);
-    
-
     const validatedReq = await validate<ValidateDownloadFile>('file: download', reqData, FILE_VALIDATION_ERROR);
-    console.log(validatedReq.file_key);
+    
     const responseData = await s3FileService.generateDownloadPresignedUrl(validatedReq.file_key);
 
     return SendSuccessMsg(c, 200, "Download URL generated successfully", responseData);
@@ -278,14 +297,15 @@ addAttachmentToTicket = async (c: Context) => {
 deleteTicketAttachmentById = async (c: Context) => {
   try {
    
-    const attachmentId = +c.req.param('attachmentId');
+    const attachmentId = +c.req.param('attachment_id');
     if (!attachmentId) {
       throw new BadRequestException("You entered an invalid id")
     }
-    const attachment = await deleteRecordById<Attachment>(attachments,attachmentId);
+    const attachment = await getRecordById<Attachment>(attachments,attachmentId);
     if (!attachment) {
       throw new NotfoundException(FILE_NOT_FOUND);
     }  
+    await softDeleteRecordById<Attachment>(attachments,attachmentId,{meta_data:null});
      
     return SendSuccessMsg(c, 200, FILE_DELETED_SUCCESS);
   } catch (error) {

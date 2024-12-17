@@ -67,7 +67,7 @@ export const validate = async<R extends ValidateReq>(actionType: AppActivity, re
     }
 
 
-    const res = await safeParseAsync(schema!, reqData, { abortEarly: true});
+    const res = await safeParseAsync(schema!, reqData, { abortEarly: false});
     if (!res.success){
         const errData = flatten(res.issues).nested
         throw new UnProcessableEntityException(errMsg, errData);

@@ -80,6 +80,9 @@ export const FILE_KEY_INVALID='File Key Invalid';
 export const FILE_KEY_MISSING='File Key Required';
 export const FILE_SIZE_IS_NUMBER='File Size must be a number';
 
+
+export const COMMENT_VALID_ERROR="Comment validation failed"
+
 // ----------UserModule ---------
 
 export const ADMIN_EXISTS = 'Admin already exists';
@@ -103,6 +106,8 @@ export const TICKET_DELETED_SUCCESS = "Ticket deleted successfully";
 export const TICKETS_FETCHED_SUCCESS = "Tickets fetched successfully";
 export const TICKET_FETCHED_SUCCESS = "Ticket fetched successfully";
 export const TICKET_ASSIGNED_SUCCESS = "Ticket assigned successfully";
+export const TICKET_VALIDATION_ERROR ="Ticket validation failed";
+export const TICKET_UPDTAE_ERROR="Ticket update failed";
 
 export const TICKET_TITLE_REQUIRED = "Ticket title is required";
 export const TICKET_TITLE_STRING = "Ticket title must be a string";
